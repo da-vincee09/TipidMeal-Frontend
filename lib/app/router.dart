@@ -5,6 +5,8 @@ import 'package:meal_recommendation_app/features/authentication/presentation/scr
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/reset_password_screen.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/splash_screen.dart';
 import 'package:meal_recommendation_app/features/home/presentation/screens/home_screen.dart';
+import 'package:meal_recommendation_app/features/profile/presentation/screens/profile_screen.dart';
+import 'package:meal_recommendation_app/features/profile/presentation/screens/profile_setup_screen.dart';
 import 'routes.dart';
 
 final appRouter = GoRouter(
@@ -59,6 +61,26 @@ final appRouter = GoRouter(
         state: state,
         type: TransitionType.fade,
         child: const HomeScreen(),
+      ),
+    ),
+
+    GoRoute(
+      path: AppRoutes.profileSetup,
+      name: 'profileSetup',
+      pageBuilder: (context, state) => buildPageWithTransition(
+        context: context,
+        state: state,
+        child: const ProfileSetupScreen(),
+      ),
+    ),
+
+    GoRoute(
+      path: AppRoutes.profile,
+      name: 'profile',
+      pageBuilder: (context, state) => buildPageWithTransition(
+        context: context,
+        state: state,
+        child: const ProfileScreen(),
       ),
     ),
   ],

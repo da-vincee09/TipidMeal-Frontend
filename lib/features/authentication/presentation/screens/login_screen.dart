@@ -6,6 +6,8 @@ import 'package:meal_recommendation_app/app/colors.dart';
 import 'package:meal_recommendation_app/app/routes.dart';
 import 'package:meal_recommendation_app/core/extensions/context_extension.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/providers/auth_provider.dart';
+import 'package:meal_recommendation_app/features/profile/presentation/providers/profile_provider.dart';
+
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -29,7 +31,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  
   Future<void> _login() async {
     FocusScope.of(context).unfocus();
 
@@ -56,13 +57,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           email: email,
           password: password,
         );
-
   }
 
+  /// Runs right after a successful signIn(). Auth success alone isn't
+  /// enough to know where to route — we still need to know whether this
+  /// user has completed profile setup, same as the splash-screen check.
+  /// Without this, a user who signed up but never finished Setup would
+  /// get dropped on Home instead of being sent back to finish it.
+  Future<void> _handlePostLogin() async {
+    await ref.read(profileControllerProvider.notifier).loadProfile();
+
+    if (!mounted) return;
+
+    final profileState = ref.read(profileControllerProvider);
+
+    profileState.when(
+      data: (profile) {
+        context.showSnackBar('Login successful!');
+        if (profile == null) {
+          context.go(AppRoutes.profileSetup);
+        } else {
+          context.go(AppRoutes.home);
+        }
+      },
+      loading: () {}, // unreachable — loadProfile() was awaited above
+      error: (error, _) {
+        context.showSnackBar(
+          'Logged in, but could not load your profile. Please try again.',
+          isError: true,
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-
     ref.listen<AsyncValue<void>>(
       authControllerProvider,
       (previous, next) {
@@ -75,11 +104,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           },
           data: (_) {
             if (previous?.isLoading ?? false) {
-              context.showSnackBar(
-                'Login successful!',
-              );
-
-              context.go(AppRoutes.home);
+              _handlePostLogin();
             }
           },
         );

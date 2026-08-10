@@ -5,4 +5,5 @@ abstract final class AppRoutes {
   static const resetPassword = '/reset-password';
   static const home = '/home';
   static const profileSetup = '/profile-setup';
+  static const profile = '/profile';
 }

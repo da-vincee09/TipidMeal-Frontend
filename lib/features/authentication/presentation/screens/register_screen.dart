@@ -6,6 +6,7 @@ import 'package:meal_recommendation_app/app/colors.dart';
 import 'package:meal_recommendation_app/app/routes.dart';
 import 'package:meal_recommendation_app/core/extensions/context_extension.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/providers/auth_provider.dart';
+import 'package:meal_recommendation_app/features/profile/presentation/providers/profile_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -71,6 +72,38 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         );
   }
 
+  /// Runs right after a successful signUp(). A brand-new account will
+  /// always be missing a profile (loadProfile() -> 404 -> AsyncData(null)),
+  /// so in practice this always routes to ProfileSetupScreen — but we still
+  /// go through the same check as Login/Splash rather than hardcoding that
+  /// assumption, in case the backend is ever changed to auto-create a
+  /// default profile row on signup.
+  Future<void> _handlePostRegister() async {
+    await ref.read(profileControllerProvider.notifier).loadProfile();
+
+    if (!mounted) return;
+
+    final profileState = ref.read(profileControllerProvider);
+
+    profileState.when(
+      data: (profile) {
+        context.showSnackBar('Account created!');
+        if (profile == null) {
+          context.go(AppRoutes.profileSetup);
+        } else {
+          context.go(AppRoutes.home);
+        }
+      },
+      loading: () {}, // unreachable — loadProfile() was awaited above
+      error: (error, _) {
+        context.showSnackBar(
+          'Account created, but could not load your profile. Please try again.',
+          isError: true,
+        );
+      },
+    );
+  }
+
   InputDecoration _fieldDecoration({
     required String hint,
     required bool isDark,
@@ -115,9 +148,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           },
           data: (_) {
             if (previous?.isLoading ?? false) {
-              context.showSnackBar('Account created!');
-
-              context.push(AppRoutes.home);
+              _handlePostRegister();
             }
           },
         );

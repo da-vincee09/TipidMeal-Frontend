@@ -47,6 +47,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                 ),
                 const SizedBox(height: 32),
+
+                ElevatedButton(
+                  onPressed: () => context.push(AppRoutes.profile),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.cream,
+                    foregroundColor: AppColors.burntOrange,
+                    shape: const StadiumBorder(),
+                  ),
+                  child: const Text(
+                    'View Profile',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
                 TextButton(
                   onPressed: () async {
                     await ref
