@@ -1,14 +1,16 @@
 # TipidMeal 🍽️
 
-A budget-friendly meal recommendation app designed to help users discover practical meals based on their budget and preferences.
+A budget-friendly meal recommendation app designed to help users discover practical, affordable meals based on their budget, cooking skills, dietary restrictions, ingredient preferences, and available pantry ingredients.
 
-> **Project status:** 🚧 In Development
+> **Project status:** 🚧 In Development — **Week 2 Complete**
 
-## Current Progress
+---
+
+## 🚀 Current Progress
 
 ### Authentication — ✅ Complete
 
-The authentication flow is currently implemented using **Supabase Auth** and **Flutter Riverpod**.
+Authentication is implemented using **Supabase Auth** and **Flutter Riverpod**.
 
 Implemented:
 
@@ -18,58 +20,499 @@ Implemented:
 * ✅ User sign out
 * ✅ Authentication state listening
 * ✅ Current user access
-* ✅ Access token access
+* ✅ Supabase access token access
 * ✅ Loading and error states through `AsyncValue`
 * ✅ Reusable Snackbar extension
 * ✅ Light and dark theme support
 * ✅ Custom authentication UI
-* ✅ Post-auth routing (Login/Register/Splash all check profile status, not just session, before deciding where to send the user)
+* ✅ Post-authentication profile-status routing
+* ✅ Splash authentication and profile checks
 
-### Profile — ✅ Complete
+Authentication routing checks both the Supabase session and application profile:
 
-The profile feature connects to an already-implemented FastAPI + PostgreSQL backend (via Supabase-hosted Postgres and Supabase Storage), using the same layered Riverpod architecture as Authentication.
+```text
+Supabase Session
+      ↓
+Profile Status
+      ↓
+ ┌───────────────┬──────────────────┐
+ │ No Session    │ Session Exists   │
+ ↓               ↓                  │
+Login        Profile Exists?        │
+             ↓         ↓            │
+            YES        NO           │
+             ↓         ↓            │
+           Home   Profile Setup     │
+```
+
+---
+
+## 👤 Profile — ✅ Complete
+
+The Profile feature connects to the FastAPI + PostgreSQL backend through Supabase-hosted PostgreSQL and Supabase Storage.
 
 Implemented:
 
-* ✅ Profile model, create/update request models
-* ✅ Profile remote datasource (Dio-based, typed `ApiException` mapping for 401/404/422/500/network errors)
-* ✅ Profile repository + Riverpod controller (`loadProfile`, `createProfile`, `updateProfile`, `uploadProfileImage`)
-* ✅ Shared `ProfileForm` widget used by both onboarding and editing (single source of truth for fields, validation, and layout)
-* ✅ **Profile Setup** — one-time onboarding screen shown when a logged-in user has no profile yet (`GET /profiles/me` → 404)
-* ✅ **Profile screen** — view mode with an Edit toggle that reuses `ProfileForm`, pre-filled, to update via `PUT`
-* ✅ **Profile picture upload** — pick from gallery, uploaded via a dedicated FastAPI endpoint (`POST /profiles/me/image`) backed by a public Supabase Storage bucket; deferred upload pattern (image is picked in the form, then uploaded right after the profile itself is successfully created/updated)
-* ✅ Splash-screen routing: session check → profile check → routes to Login / Profile Setup / Home accordingly
-* ✅ Login and Register both re-check profile status after authenticating, instead of assuming Home — so a user who signed up but never finished Setup is correctly routed back to it on their next login
-* ✅ Discard-changes confirmation when canceling an in-progress profile edit
+* ✅ Profile model
+* ✅ Profile create/update request models
+* ✅ Profile remote datasource
+* ✅ Typed `ApiException` handling
+* ✅ Profile repository
+* ✅ Riverpod `ProfileController`
+* ✅ Profile loading
+* ✅ Profile creation
+* ✅ Profile updating
+* ✅ Profile picture selection
+* ✅ Profile picture upload
+* ✅ Profile picture caching
+* ✅ Food allergies
+* ✅ Disliked ingredients
+* ✅ Daily budget
+* ✅ Cooking skill level
+* ✅ Shared `ProfileForm`
+* ✅ Profile Setup onboarding
+* ✅ Profile viewing/editing
+* ✅ Discard-changes confirmation
+* ✅ Profile-status routing after login/register
+* ✅ Profile-status routing from splash
 
-### Coming Next
+Profile image uploads use a dedicated FastAPI endpoint backed by Supabase Storage.
 
-* 🔲 Home screen (currently a placeholder with sign-out and a link into Profile)
-* 🔲 Meal recommendations
-* 🔲 Budget-based meal filtering
-* 🔲 Meal details
-* 🔲 Food categories
-* 🔲 Favorites
-* 🔲 Additional app features
+```text
+Flutter
+   ↓
+Profile Form
+   ↓
+Create / Update Profile
+   ↓
+FastAPI
+   ↓
+PostgreSQL
+
+Profile Image
+   ↓
+POST /profiles/me/image
+   ↓
+FastAPI
+   ↓
+Supabase Storage
+   ↓
+Public Image URL
+   ↓
+Profile
+```
 
 ---
 
-## Tech Stack
+# 🏠 Home — ✅ Complete
 
-* **Flutter** — Mobile application framework
-* **Dart** — Programming language
-* **Riverpod** — State management
-* **Supabase** — Authentication, Postgres hosting, and file storage
-* **FastAPI** — Backend REST API (profiles, and future feature endpoints)
-* **Dio** — HTTP client for talking to the FastAPI backend
-* **image_picker** — Profile picture selection
-* **Poppins** — Application typography
+The Home screen has been implemented as the application's primary dashboard.
+
+Implemented:
+
+* ✅ Personalized greeting
+* ✅ User first name
+* ✅ Daily budget display
+* ✅ Pantry item count
+* ✅ Top recommendation previews
+* ✅ Recommendation cards
+* ✅ Pull-to-refresh
+* ✅ Profile refresh
+* ✅ Pantry refresh
+* ✅ Recommendation refresh
+* ✅ Navigation to Meals
+* ✅ Navigation to Recommendations
+* ✅ Navigation to Pantry
+* ✅ Navigation to Profile
+
+The Home screen provides a summary of the user's current meal-planning information.
+
+```text
+Home
+ ├── Greeting
+ ├── Daily Budget
+ ├── Pantry Summary
+ ├── Top Recommendations
+ └── Quick Navigation
+```
 
 ---
 
-## Project Structure
+# 🥫 Pantry — ✅ Complete
 
-The project follows a feature-oriented architecture with separation between presentation, domain, and data layers.
+The Pantry feature allows users to manage ingredients currently available to them.
+
+Implemented:
+
+* ✅ Pantry item entity
+* ✅ Pantry item model
+* ✅ Remote datasource
+* ✅ Repository
+* ✅ Riverpod `PantryController`
+* ✅ Load pantry items
+* ✅ Add pantry item
+* ✅ Edit pantry item
+* ✅ Delete pantry item
+* ✅ Quantity support
+* ✅ Unit support
+* ✅ Ingredient autocomplete
+* ✅ Add ingredient dialog
+* ✅ Edit ingredient dialog
+* ✅ Loading states
+* ✅ Error states
+* ✅ Success snackbars
+* ✅ Empty pantry state
+* ✅ Pull-to-refresh
+* ✅ JWT authentication
+* ✅ User-specific pantry access
+* ✅ Automatic recommendation refresh after pantry changes
+
+Pantry operations communicate with the FastAPI backend using the authenticated Supabase access token.
+
+```text
+Flutter
+   ↓
+PantryController
+   ↓
+PantryRepository
+   ↓
+PantryRemoteDatasource
+   ↓
+FastAPI
+   ↓
+PostgreSQL
+```
+
+Pantry data is user-specific:
+
+```text
+Supabase User
+      ↓
+Authenticated JWT
+      ↓
+FastAPI get_current_user()
+      ↓
+Profile
+      ↓
+Pantry Items
+```
+
+A user cannot access another user's pantry through the application API.
+
+---
+
+# 🍳 Meals — ✅ Complete
+
+The Meals feature provides access to the application's meal database.
+
+Implemented:
+
+* ✅ Meal entity
+* ✅ Meal ingredient entity
+* ✅ Meal instruction entity
+* ✅ Meal model
+* ✅ Meal remote datasource
+* ✅ Meal repository
+* ✅ Riverpod meal provider/controller
+* ✅ Meal list
+* ✅ Meal search
+* ✅ Meal filtering
+* ✅ Meal cards
+* ✅ Meal detail screen
+* ✅ Ingredients
+* ✅ Ingredient quantities
+* ✅ Cooking instructions
+* ✅ Estimated cost
+* ✅ Cooking time
+* ✅ Difficulty
+* ✅ Servings
+* ✅ Calories
+* ✅ Cached network images
+* ✅ Graceful handling of meals without images
+* ✅ Seeded meal database
+
+Current seeded meals include:
+
+* Chicken Adobo
+* Garlic Fried Rice
+* Beef Tapa
+* Vegetable Lumpia
+* Ginisang Munggo
+
+Meal navigation supports nested meal-detail routes:
+
+```text
+Meals
+  ↓
+Meal Card
+  ↓
+Meal Details
+  ├── Image
+  ├── Estimated Cost
+  ├── Cooking Time
+  ├── Difficulty
+  ├── Ingredients
+  └── Instructions
+```
+
+---
+
+# ⭐ Recommendations — ✅ Complete
+
+The deterministic recommendation system is now implemented end-to-end.
+
+The recommendation system does **not** depend on an AI API.
+
+Instead, recommendations are calculated using explicit business rules and scoring.
+
+The system considers:
+
+* ✅ Ingredient availability
+* ✅ Ingredient substitutions
+* ✅ Ingredient quantities
+* ✅ Optional ingredients
+* ✅ Budget compatibility
+* ✅ Cooking skill
+* ✅ Food allergies
+* ✅ Disliked ingredients
+* ✅ Meal coverage
+* ✅ Hybrid recommendation score
+* ✅ Server-side ranking
+
+Recommendation flow:
+
+```text
+Authenticated User
+        ↓
+Profile
+        ↓
+Pantry
+        ↓
+Meals
+        ↓
+Ingredient Availability
+        ↓
+Meal Adaptation
+        ↓
+Allergy Filtering
+        ↓
+Budget Score
+        ↓
+Skill Score
+        ↓
+Preference Score
+        ↓
+Coverage Score
+        ↓
+Hybrid Score
+        ↓
+Ranked Recommendations
+```
+
+### Recommendation scoring
+
+The recommendation system uses an explicit weighted scoring model.
+
+The current hybrid score considers:
+
+```text
+Ingredient Coverage     30%
+Budget Compatibility    30%
+Cooking Skill           10%
+Allergy Compatibility   20%
+Disliked Ingredients    10%
+```
+
+Meals containing allergies are excluded.
+
+Meals requiring unavailable mandatory ingredients are excluded through the adaptation/fallback logic.
+
+Available substitutes and optional ingredients can allow a meal to remain recommendable.
+
+### Ingredient adaptation
+
+The recommendation system recognizes several ingredient actions:
+
+```text
+retain
+insufficient
+substitute
+omit
+unavailable
+```
+
+Meals are classified as either:
+
+```text
+adapt
+fallback
+```
+
+Fallback meals are filtered server-side and do not reach the Flutter client.
+
+### Recommendation UI
+
+Recommendation cards display information such as:
+
+* Hybrid score
+* Ingredient coverage
+* Ingredient substitutions
+* Low-stock/insufficient ingredient information
+* Omitted optional ingredients
+* Meal image
+* Estimated cost
+
+Pantry changes automatically trigger a recommendation refresh.
+
+This is important because the Flutter application uses a persistent `StatefulShellRoute`, meaning screens can remain alive while the user switches tabs.
+
+---
+
+# 🧭 Navigation — ✅ Complete
+
+The application now uses a bottom navigation shell containing:
+
+```text
+Home
+Meals
+Recommendations
+Pantry
+```
+
+Profile remains accessible separately.
+
+Meal details use nested routing:
+
+```text
+/meals/:id
+```
+
+The navigation structure allows users to move through the primary Week 2 application flow:
+
+```text
+Login
+  ↓
+Profile
+  ↓
+Home
+  ↓
+ ┌─────────┬─────────┬────────────────┐
+ ↓         ↓         ↓                ↓
+Meals    Pantry   Recommendations   Profile
+ ↓                   ↓
+Details          Meal Details
+```
+
+---
+
+# 🔐 Authentication & API Security
+
+The Flutter application communicates with the FastAPI backend using the authenticated Supabase access token.
+
+Requests to protected endpoints include:
+
+```text
+Authorization: Bearer <Supabase Access Token>
+```
+
+The application uses an `AuthInterceptor` to obtain the current Supabase session and attach the access token to API requests.
+
+```text
+Flutter
+   ↓
+Supabase Session
+   ↓
+Access Token
+   ↓
+Dio AuthInterceptor
+   ↓
+FastAPI
+   ↓
+JWT Verification
+   ↓
+Current User
+```
+
+Protected backend features include:
+
+* Profile
+* Pantry
+* Recommendations
+
+User-specific data is always associated with the authenticated user's profile.
+
+---
+
+# 🏗️ Architecture
+
+The Flutter application follows a feature-oriented layered architecture.
+
+Each major feature is separated into:
+
+```text
+presentation/
+domain/
+data/
+```
+
+### Presentation
+
+Responsible for:
+
+* Screens
+* Widgets
+* Riverpod controllers/providers
+* UI state
+
+```text
+presentation/
+├── providers/
+├── screens/
+└── widgets/
+```
+
+### Domain
+
+Contains application-level contracts and abstractions.
+
+```text
+domain/
+├── entities/
+└── repositories/
+```
+
+### Data
+
+Responsible for API communication and repository implementations.
+
+```text
+data/
+├── datasources/
+├── models/
+└── repositories/
+```
+
+Typical feature flow:
+
+```text
+Screen
+  ↓
+Riverpod Controller
+  ↓
+Repository
+  ↓
+Repository Implementation
+  ↓
+Remote Datasource
+  ↓
+FastAPI
+```
+
+This keeps UI code independent from the underlying API implementation.
+
+---
+
+# 📁 Project Structure
 
 ```text
 lib/
@@ -81,9 +524,7 @@ lib/
 │
 ├── core/
 │   ├── constants/
-│   │   └── profile_options.dart
 │   ├── errors/
-│   │   └── api_exception.dart
 │   ├── extensions/
 │   ├── networks/
 │   ├── services/
@@ -91,6 +532,7 @@ lib/
 │   └── widgets/
 │
 ├── features/
+│   │
 │   ├── authentication/
 │   │   ├── data/
 │   │   │   ├── datasources/
@@ -105,33 +547,62 @@ lib/
 │   ├── profile/
 │   │   ├── data/
 │   │   │   ├── datasources/
-│   │   │   │   └── profile_remote_datasource.dart
 │   │   │   ├── models/
-│   │   │   │   ├── profile_model.dart
-│   │   │   │   ├── profile_create_request.dart
-│   │   │   │   ├── profile_update_request.dart
-│   │   │   │   ├── food_allergy_model.dart
-│   │   │   │   └── disliked_ingredient_model.dart
 │   │   │   ├── repositories/
-│   │   │   │   └── profile_repository_impl.dart
 │   │   │   └── profile_dependencies.dart
 │   │   ├── domain/
+│   │   │   ├── entities/
 │   │   │   └── repositories/
-│   │   │       └── profile_repository.dart
 │   │   └── presentation/
 │   │       ├── providers/
-│   │       │   └── profile_provider.dart
 │   │       ├── screens/
-│   │       │   ├── profile_setup_screen.dart
-│   │       │   └── profile_screen.dart
 │   │       └── widgets/
-│   │           └── profile_form.dart
 │   │
-│   └── home/
+│   ├── home/
+│   │   ├── data/
+│   │   ├── domain/
+│   │   └── presentation/
+│   │       ├── screens/
+│   │       └── widgets/
+│   │
+│   ├── pantry/
+│   │   ├── data/
+│   │   │   ├── datasources/
+│   │   │   ├── models/
+│   │   │   └── repositories/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   └── repositories/
+│   │   └── presentation/
+│   │       ├── providers/
+│   │       ├── screens/
+│   │       └── widgets/
+│   │
+│   ├── meals/
+│   │   ├── data/
+│   │   │   ├── datasources/
+│   │   │   ├── models/
+│   │   │   └── repositories/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   └── repositories/
+│   │   └── presentation/
+│   │       ├── providers/
+│   │       ├── screens/
+│   │       └── widgets/
+│   │
+│   └── recommendations/
 │       ├── data/
+│       │   ├── datasources/
+│       │   ├── models/
+│       │   └── repositories/
 │       ├── domain/
+│       │   ├── entities/
+│       │   └── repositories/
 │       └── presentation/
-│           └── screens/
+│           ├── providers/
+│           ├── screens/
+│           └── widgets/
 │
 └── shared/
     ├── extensions/
@@ -142,165 +613,22 @@ lib/
 
 ---
 
-## Architecture
+# 🎨 UI & Theme
 
-The application uses a layered approach to keep the UI, business logic, and data access separated.
+The application supports:
 
-For authentication, the current flow is:
-
-```text
-UI
- │
- ▼
-AuthController
- │
- ▼
-AuthRepository
- │
- ▼
-AuthRepositoryImpl
- │
- ▼
-AuthRemoteDatasource
- │
- ▼
-Supabase Auth
-```
-
-For profile, the same pattern is used against the FastAPI backend instead:
-
-```text
-UI (ProfileSetupScreen / ProfileScreen / ProfileForm)
- │
- ▼
-ProfileController (Riverpod Notifier — loadProfile, createProfile,
-                    updateProfile, uploadProfileImage)
- │
- ▼
-ProfileRepository (domain contract)
- │
- ▼
-ProfileRepositoryImpl
- │
- ▼
-ProfileRemoteDatasource (Dio → FastAPI)
- │
- ▼
-FastAPI  ──▶  PostgreSQL (profile data)
-        └──▶  Supabase Storage (profile pictures, via a
-               dedicated FastAPI upload endpoint using a
-               server-side service-role key)
-```
-
-### Presentation
-
-Responsible for screens, widgets, and Riverpod controllers.
-
-```text
-presentation/
-├── providers/
-├── screens/
-└── widgets/
-```
-
-### Domain
-
-Contains repository contracts and application-level abstractions.
-
-```text
-domain/
-└── repositories/
-```
-
-### Data
-
-Handles communication with Supabase/FastAPI and implements domain repositories.
-
-```text
-data/
-├── datasources/
-└── repositories/
-```
-
-This structure makes it easier to replace or modify the data source without tightly coupling the UI to Supabase or FastAPI.
-
----
-
-## Authentication
-
-Authentication is handled through Supabase.
-
-The current authentication operations include:
-
-```text
-Sign Up
-   ↓
-Supabase Auth
-   ↓
-Check profile status → Profile Setup (no profile) or Home (has profile)
-
-Login
-   ↓
-Supabase Auth
-   ↓
-Check profile status → Profile Setup (no profile) or Home (has profile)
-
-Reset Password
-   ↓
-Supabase Auth
-
-Sign Out
-   ↓
-Supabase Auth
-```
-
-Riverpod manages the asynchronous state of authentication operations using `AsyncValue`.
-
-App start (splash) follows the same profile-status check:
-
-```text
-Splash
-  ↓
-Check Supabase session
-  ↓
-No session            → Login
-Session, no profile   → Profile Setup
-Session, has profile  → Home
-Error checking either → Error state with retry
-```
-
----
-
-## Profile
-
-Profile data (name, date of birth, sex, daily budget, cooking skill level, food allergies, disliked ingredients, and profile picture) is managed through a FastAPI backend, authenticated via Supabase JWTs verified server-side against Supabase's JWKS endpoint.
-
-```text
-Create Profile (onboarding, once per user)
-   ↓
-POST /profiles
-
-Get Profile
-   ↓
-GET /profiles/me
-
-Update Profile
-   ↓
-PUT /profiles/me
-
-Upload Profile Picture
-   ↓
-POST /profiles/me/image   (multipart upload → Supabase Storage,
-                            public URL saved back onto the profile row)
-```
-
-`ProfileSetupScreen` and `ProfileScreen`'s edit mode share a single `ProfileForm` widget, so field definitions, validation, and the picture picker only exist in one place. The picture is picked locally in the form and uploaded as a follow-up step only after the profile itself has been successfully created or updated — the upload endpoint requires an existing profile row, so it can't run before that.
-
----
-
-## UI & Theme
-
-The app currently supports both light and dark themes.
+* ✅ Light theme
+* ✅ Dark theme
+* ✅ Poppins typography
+* ✅ Food-inspired visual identity
+* ✅ Burnt-orange primary accents
+* ✅ Rounded Material cards
+* ✅ Consistent input styling
+* ✅ Cached network images
+* ✅ Loading states
+* ✅ Error states
+* ✅ Empty states
+* ✅ Snackbar feedback
 
 ### Brand Colors
 
@@ -312,47 +640,183 @@ The primary visual identity uses warm food-inspired colors:
 * Olive Green
 * Green
 
-The authentication screens use a more distinctive food-themed visual style (hero image, colored background, card-over-background layout) while the Profile screens currently use a simpler, flatter layout using the same color tokens and pill-input styling. Bringing Profile Setup in line with the auth screens' hero/card motif is a possible future polish item.
-
-### Typography
-
-The application uses **Poppins** as its primary font.
+The authentication, profile, pantry, meals, recommendations, and home screens have been styled to maintain a consistent visual language.
 
 ---
 
-## Development
+# 🔌 Backend Integration
 
-### Requirements
+The Flutter application communicates with a FastAPI backend.
 
-Make sure you have the following installed:
+Current backend feature areas include:
+
+```text
+FastAPI
+│
+├── Authentication / JWT verification
+│
+├── Profiles
+│
+├── Pantry
+│
+├── Meals
+│
+└── Recommendations
+```
+
+The general API flow is:
+
+```text
+Flutter
+   ↓
+Dio
+   ↓
+Authorization: Bearer <Supabase JWT>
+   ↓
+FastAPI
+   ↓
+JWT Verification
+   ↓
+Feature Router
+   ↓
+Service
+   ↓
+Repository
+   ↓
+PostgreSQL
+```
+
+Profile image uploads additionally use:
+
+```text
+FastAPI
+   ↓
+Supabase Storage
+```
+
+---
+
+# 📊 Week 2 Application Flow
+
+The primary Week 2 objective is now implemented:
+
+```text
+Login
+  ↓
+Profile Check
+  ↓
+Home
+  ↓
+┌─────────────────────────────┐
+│                             │
+↓                             ↓
+Meals                       Pantry
+│                             │
+↓                             ↓
+Meal Details          Available Ingredients
+                              │
+                              ↓
+                       Recommendations
+                              │
+                              ↓
+                       Meal Details
+```
+
+Recommendations are personalized using:
+
+```text
+Profile
++
+Pantry
++
+Meals
++
+Business Rules
+      ↓
+Ranked Recommendations
+```
+
+---
+
+# 🧪 Testing & Edge Cases
+
+Implemented and tested during Week 2 development:
+
+* ✅ Empty pantry
+* ✅ Pantry CRUD
+* ✅ Recommendation refresh after pantry changes
+* ✅ Matching pantry ingredients
+* ✅ Ingredient substitutions
+* ✅ Optional ingredients
+* ✅ Insufficient/low-stock ingredients
+* ✅ Allergy filtering
+* ✅ Disliked ingredient scoring
+* ✅ Budget scoring
+* ✅ Cooking skill scoring
+* ✅ Server-side recommendation ranking
+* ✅ Meal detail navigation
+* ✅ Cached meal images
+* ✅ Meals without images
+* ✅ Authentication-protected API requests
+* ✅ User-specific pantry data
+* ✅ API loading states
+* ✅ API error states
+* ✅ Empty recommendation states
+
+---
+
+# ⚙️ Development
+
+## Requirements
+
+Make sure you have:
 
 * Flutter SDK
 * Dart SDK
 * Android Studio or Xcode
 * A Supabase project
-* A running instance of the FastAPI backend (see backend repo/folder), with:
-  * `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` configured for server-side Storage uploads
-  * `python-multipart` installed (required for file upload endpoints)
+* A running TipidMeal FastAPI backend
+* Supabase authentication configured
+* Supabase PostgreSQL configured
+* Supabase Storage configured
 
-### Install Dependencies
+The backend must have the required environment variables configured, including:
+
+```text
+DATABASE_URL
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+The service-role key is **server-side only** and must never be included in the Flutter application.
+
+---
+
+## Install Dependencies
 
 ```bash
 flutter pub get
 ```
 
-### Run the Application
+---
+
+## Run the Application
 
 ```bash
 flutter run
 ```
 
-### Analyze the Project
+---
+
+## Analyze the Project
 
 ```bash
 flutter analyze
 ```
 
-### Run Tests
+---
+
+## Run Tests
 
 ```bash
 flutter test
@@ -360,23 +824,25 @@ flutter test
 
 ---
 
-## Environment Configuration
+# 🔐 Environment & Secrets
 
-Supabase credentials should be configured through the project's environment/configuration setup.
+Supabase credentials should be provided through the project's environment/configuration system.
 
-The backend additionally requires:
+Do **not** commit:
 
-* `DATABASE_URL`
-* `SUPABASE_URL`
-* `SUPABASE_SERVICE_ROLE_KEY` (server-side only — used for Storage uploads, bypasses Row Level Security, must never be exposed client-side)
+* Supabase service-role keys
+* Private API keys
+* Database credentials
+* JWT secrets
+* `.env` files containing secrets
 
-Do **not** commit private credentials, service-role keys, or other sensitive secrets to Git.
+The Supabase service-role key belongs exclusively on the FastAPI backend.
 
 ---
 
-## Roadmap
+# 🗺️ Roadmap
 
-### Phase 1 — Authentication ✅
+## Phase 1 — Authentication ✅
 
 * [x] Project structure
 * [x] Supabase integration
@@ -389,57 +855,273 @@ Do **not** commit private credentials, service-role keys, or other sensitive sec
 * [x] Sign out
 * [x] Authentication UI
 * [x] Theme and colors
+* [x] Profile-status routing
 
-### Phase 2 — Profile ✅
+## Phase 2 — Profile ✅
 
-* [x] Create profile model
-* [x] Supabase-hosted Postgres profiles table (backend, pre-existing)
+* [x] Profile model
 * [x] Profile datasource
 * [x] Profile repository
 * [x] Profile provider/controller
 * [x] View profile
 * [x] Edit profile
-* [x] Save profile
-* [x] Profile avatar (upload, display, and edit)
-* [x] Onboarding gate (Profile Setup) wired into splash/login/register routing
+* [x] Create profile
+* [x] Profile validation
+* [x] Profile avatar selection
+* [x] Profile avatar upload
+* [x] Profile avatar caching
+* [x] Food allergies
+* [x] Disliked ingredients
+* [x] Daily budget
+* [x] Cooking skill level
+* [x] Profile Setup onboarding
 
-### Phase 3 — Home
+## Phase 3 — Core Application Features ✅
 
-* [ ] Home screen
-* [ ] Meal categories
-* [ ] Meal recommendation UI
-* [ ] Budget information
-* [ ] Navigation
+* [x] Home screen
+* [x] Bottom navigation
+* [x] Pantry feature
+* [x] Pantry CRUD
+* [x] Ingredient autocomplete
+* [x] Meal data model
+* [x] Meal repository
+* [x] Meal list
+* [x] Meal search
+* [x] Meal details
+* [x] Ingredients
+* [x] Cooking instructions
+* [x] Seed meals
 
-### Phase 4 — Meal Recommendations
+## Phase 4 — Recommendation System ✅
 
-* [ ] Meal data model
-* [ ] Meal repository
-* [ ] Recommendation logic
-* [ ] Budget-based filtering
-* [ ] Meal details
-* [ ] Ingredients
-* [ ] Cooking instructions
+* [x] Recommendation data model
+* [x] Recommendation repository
+* [x] Recommendation datasource
+* [x] Recommendation controller
+* [x] Ingredient availability
+* [x] Quantity-aware pantry matching
+* [x] Ingredient substitution
+* [x] Optional ingredient handling
+* [x] Allergy filtering
+* [x] Disliked ingredient scoring
+* [x] Budget scoring
+* [x] Cooking skill scoring
+* [x] Ingredient coverage scoring
+* [x] Hybrid recommendation scoring
+* [x] Recommendation ranking
+* [x] Recommendation UI
+* [x] Recommendation refresh after pantry changes
+* [x] Match/coverage display
 
-### Phase 5 — Additional Features
+## Phase 5 — Integration & Polish ✅
 
-* [ ] Favorites
-* [ ] Search
-* [ ] User preferences
-* [ ] Improved recommendations
-* [ ] Notifications
-* [ ] Additional UI/UX improvements
+* [x] Home → Meals navigation
+* [x] Home → Pantry navigation
+* [x] Home → Recommendations navigation
+* [x] Recommendations → Meal Details
+* [x] Pantry → Recommendations integration
+* [x] Authentication → Profile → Home flow
+* [x] JWT-protected API requests
+* [x] Loading states
+* [x] Error states
+* [x] Empty states
+* [x] UI consistency
+* [x] Light/dark theme support
+* [x] Cached network images
+* [x] Final Week 2 screen polish
 
 ---
 
-## Project Status
+# 🚧 Future / Not Yet Implemented Features
 
-**Current milestone: Profile feature complete 🎉**
+The following features are **not yet implemented** and are outside the completed Week 2 core application scope.
 
-The next major milestone is the **Home screen and meal recommendation system**.
+### ⚙️ Settings — 🔲 Not Yet Implemented
+
+A dedicated Settings screen has not yet been implemented.
+
+Planned functionality includes:
+
+* [ ] Settings screen
+* [ ] Theme preferences
+* [ ] Dark mode toggle
+* [ ] Light mode toggle
+* [ ] Account-related settings
+* [ ] Sign out
+* [ ] Additional application preferences
+
+> **Note:** The application already supports light and dark themes at the theme level, but a user-facing Settings screen for controlling these preferences has not yet been implemented.
+
+### 🔐 Sign Out in Settings — 🔲 Not Yet Implemented
+
+Supabase sign-out functionality already exists as part of Authentication.
+
+However, the final UI location for sign-out is planned to be:
+
+```text
+Settings
+   ↓
+Sign Out
+   ↓
+Supabase Auth
+   ↓
+Login
+```
+
+The dedicated Settings-based sign-out UI has not yet been implemented.
+
+### ⭐ Favorites / Saved Meals — 🔲 Not Yet Implemented
+
+* [ ] Save meals
+* [ ] Remove saved meals
+* [ ] Favorites screen
+* [ ] Persistent saved meals
+
+### 🔎 Advanced Meal Search & Filtering — 🔲 Not Yet Implemented
+
+Basic meal search is currently implemented.
+
+Future improvements may include:
+
+* [ ] Food category filtering
+* [ ] Cost filtering
+* [ ] Cooking-time filtering
+* [ ] Difficulty filtering
+* [ ] More advanced ingredient filtering
+
+### 🍱 Food Categories — 🔲 Not Yet Implemented
+
+* [ ] Breakfast
+* [ ] Lunch
+* [ ] Dinner
+* [ ] Snacks
+* [ ] Category-based filtering
+
+### 📅 Weekly Meal Planner — 🔲 Not Yet Implemented
+
+* [ ] Weekly meal schedule
+* [ ] Assign meals to specific days
+* [ ] Daily meal planning
+* [ ] Weekly budget overview
+
+### 🛒 Grocery List Generator — 🔲 Not Yet Implemented
+
+* [ ] Generate grocery list from selected meals
+* [ ] Combine duplicate ingredients
+* [ ] Track purchased ingredients
+* [ ] Integrate grocery requirements with pantry
+
+### 🥗 Nutrition Information — 🔲 Not Yet Implemented
+
+* [ ] Detailed nutritional information
+* [ ] Protein
+* [ ] Carbohydrates
+* [ ] Fat
+* [ ] Other nutritional metrics
+
+Basic calorie information is currently available for seeded meals, but a complete nutrition feature has not yet been implemented.
+
+### 🔔 Notifications — 🔲 Not Yet Implemented
+
+* [ ] Meal recommendations notifications
+* [ ] Pantry reminders
+* [ ] Meal-planning reminders
+* [ ] Other application notifications
+
+### 🤖 AI-Assisted Recommendations — 🔲 Not Yet Implemented
+
+The current recommendation system intentionally uses deterministic and explainable business rules.
+
+AI integration is deferred until the deterministic recommendation system can be evaluated independently.
+
+Potential future functionality:
+
+* [ ] AI-assisted meal recommendations
+* [ ] Natural-language recommendation explanations
+* [ ] AI-assisted ingredient substitutions
+* [ ] Personalized recommendation explanations
+
+### 🛠️ Admin Functionality — 🔲 Not Yet Implemented
+
+* [ ] Admin authentication
+* [ ] Meal management
+* [ ] Ingredient management
+* [ ] Meal image management
+* [ ] Recommendation monitoring
 
 ---
 
-## License
+# 📌 Project Status
 
-This project is currently under development.
+> **Current milestone: Week 2 Complete 🎉**
+
+TipidMeal now has a working core application flow consisting of:
+
+```text
+Authentication
+      ↓
+Profile
+      ↓
+Home
+      ↓
+Meals
+      ↓
+Pantry
+      ↓
+Deterministic Recommendations
+      ↓
+Meal Details
+```
+
+The completed Week 2 application includes:
+
+* ✅ Supabase authentication
+* ✅ Profile creation and management
+* ✅ Profile picture upload
+* ✅ Home dashboard
+* ✅ Meal browsing
+* ✅ Meal search
+* ✅ Meal details
+* ✅ Pantry CRUD
+* ✅ Ingredient autocomplete
+* ✅ Quantity-aware pantry matching
+* ✅ Ingredient substitutions
+* ✅ Optional ingredient handling
+* ✅ Allergy filtering
+* ✅ Disliked ingredient scoring
+* ✅ Budget scoring
+* ✅ Cooking skill scoring
+* ✅ Deterministic recommendation ranking
+* ✅ Recommendation refresh after pantry changes
+* ✅ Bottom navigation
+* ✅ JWT-protected API communication
+* ✅ Loading, error, and empty states
+* ✅ Light and dark theme support
+* ✅ Consistent UI styling
+
+The recommendation engine operates using deterministic, explainable business rules rather than an external AI API.
+
+### Current Limitations
+
+The following are intentionally **not yet implemented**:
+
+* 🔲 Settings screen
+* 🔲 User-facing dark/light mode preference control
+* 🔲 Sign out inside Settings
+* 🔲 Favorites / saved meals
+* 🔲 Food categories
+* 🔲 Advanced meal filtering
+* 🔲 Weekly meal planner
+* 🔲 Grocery list generator
+* 🔲 Full nutrition information
+* 🔲 Notifications
+* 🔲 AI-assisted recommendations
+* 🔲 Admin functionality
+
+These features can be implemented in later development phases after the Week 2 core application has been tested and evaluated.
+
+---
+
+## 📄 License
+
+This project is currently under development as part of an undergraduate thesis.

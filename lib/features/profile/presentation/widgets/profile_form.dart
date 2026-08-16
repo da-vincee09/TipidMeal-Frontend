@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meal_recommendation_app/app/colors.dart';
 import 'package:meal_recommendation_app/core/constants/profile_options.dart';
@@ -307,7 +308,7 @@ class _ProfileFormState extends State<ProfileForm> {
                   backgroundImage: _pickedImage != null
                       ? FileImage(_pickedImage!) as ImageProvider
                       : (widget.initialProfile?.profileImageUrl != null
-                          ? NetworkImage(widget.initialProfile!.profileImageUrl!)
+                          ? CachedNetworkImageProvider(widget.initialProfile!.profileImageUrl!)
                           : null),
                   child: _pickedImage == null &&
                           widget.initialProfile?.profileImageUrl == null

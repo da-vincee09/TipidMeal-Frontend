@@ -6,4 +6,8 @@ abstract final class AppRoutes {
   static const home = '/home';
   static const profileSetup = '/profile-setup';
   static const profile = '/profile';
+
+  static const pantry = '/pantry';
+  static const meals = '/meals';
+  static const recommendations = '/recommendations';
 }

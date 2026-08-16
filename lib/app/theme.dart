@@ -259,6 +259,32 @@ abstract final class AppTheme {
         color: Color(0xFFE5E7EB),
         thickness: 1,
       ),
+
+
+      // ----------------------------------------------------------
+      // NAVIGATION BAR
+      // ----------------------------------------------------------
+
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.lightSurface,
+        indicatorColor: AppColors.burntOrange.withValues(alpha: 0.15),
+        elevation: 0,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            color: selected ? AppColors.burntOrange : AppColors.lightSecondaryText,
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? AppColors.burntOrange : AppColors.lightSecondaryText,
+          );
+        }),
+      ),
     );
   }
 
@@ -518,6 +544,31 @@ abstract final class AppTheme {
       dividerTheme: const DividerThemeData(
         color: Color(0xFF374151),
         thickness: 1,
+      ),
+
+      // ----------------------------------------------------------
+      // NAVIGATION BAR
+      // ----------------------------------------------------------
+
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.darkSurface,
+        indicatorColor: AppColors.burntOrange.withValues(alpha: 0.2),
+        elevation: 0,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            color: selected ? AppColors.burntOrange : AppColors.darkSecondaryText,
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? AppColors.burntOrange : AppColors.darkSecondaryText,
+          );
+        }),
       ),
     );
   }

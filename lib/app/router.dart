@@ -1,12 +1,17 @@
 import 'package:go_router/go_router.dart';
+import 'package:meal_recommendation_app/app/main_shell.dart';
 import 'package:meal_recommendation_app/app/page_transitions.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/login_screen.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/register_screen.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/reset_password_screen.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/splash_screen.dart';
 import 'package:meal_recommendation_app/features/home/presentation/screens/home_screen.dart';
+import 'package:meal_recommendation_app/features/meals/presentation/screens/meal_detail_screen.dart';
+import 'package:meal_recommendation_app/features/meals/presentation/screens/meals_screen.dart';
+import 'package:meal_recommendation_app/features/pantry/presentation/screens/pantry_screen.dart';
 import 'package:meal_recommendation_app/features/profile/presentation/screens/profile_screen.dart';
 import 'package:meal_recommendation_app/features/profile/presentation/screens/profile_setup_screen.dart';
+import 'package:meal_recommendation_app/features/recommendations/presentation/screens/recommendations_screen.dart';
 import 'routes.dart';
 
 final appRouter = GoRouter(
@@ -54,17 +59,6 @@ final appRouter = GoRouter(
     ),
 
     GoRoute(
-      path: AppRoutes.home,
-      name: 'home',
-      pageBuilder: (context, state) => buildPageWithTransition(
-        context: context,
-        state: state,
-        type: TransitionType.fade,
-        child: const HomeScreen(),
-      ),
-    ),
-
-    GoRoute(
       path: AppRoutes.profileSetup,
       name: 'profileSetup',
       pageBuilder: (context, state) => buildPageWithTransition(
@@ -82,6 +76,60 @@ final appRouter = GoRouter(
         state: state,
         child: const ProfileScreen(),
       ),
+    ),
+
+    // ------------------------------------------------------------
+    // Bottom-nav tabs — each branch keeps its own navigation stack.
+    // ------------------------------------------------------------
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) =>
+          MainShell(navigationShell: navigationShell),
+      branches: [
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.home,
+              name: 'home',
+              builder: (context, state) => const HomeScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+           GoRoute(
+              path: '/meals',
+              builder: (context, state) => const MealsScreen(),
+              routes: [
+                GoRoute(
+                  path: ':id',
+                  builder: (context, state) {
+                    final mealId = state.pathParameters['id']!;
+                    return MealDetailScreen(mealId: mealId);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.recommendations,
+              name: 'recommendations',
+              builder: (context, state) => const RecommendationsScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.pantry,
+              name: 'pantry',
+              builder: (context, state) => const PantryScreen(),
+            ),
+          ],
+        ),
+      ],
     ),
   ],
 );

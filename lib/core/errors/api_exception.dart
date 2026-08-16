@@ -16,6 +16,16 @@ class ProfileNotFoundException extends ApiException {
   const ProfileNotFoundException([super.message = 'Profile not found']);
 }
 
+class PantryItemNotFoundException extends ApiException {
+  const PantryItemNotFoundException([
+    super.message = 'Pantry item not found',
+  ]);
+}
+
+class MealNotFoundException extends ApiException {
+  MealNotFoundException() : super('Meal not found');
+}
+
 class ValidationException extends ApiException {
   final List<dynamic> errors;
   const ValidationException(this.errors, [super.message = 'Invalid data']);
