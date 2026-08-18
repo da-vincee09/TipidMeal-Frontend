@@ -45,13 +45,13 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
     if (!mounted) return;
 
     if (success) {
-      context.showSuccessSnackBar('${result.ingredient} added to pantry');
+      context.showSuccessSnackBar('${result.ingredient} added to pantry', bottomMargin: 88);
     } else {
-      context.showErrorSnackBar('Could not add item. Please try again.');
+      context.showErrorSnackBar('Could not add item. Please try again.', bottomMargin: 88);
     }
   }
 
-  Future<void> _openEditDialog(PantryItemModel item) async {
+   Future<void> _openEditDialog(PantryItemModel item) async {
     final result = await showDialog<PantryItemFormResult>(
       context: context,
       builder: (_) => AddPantryItemDialog(item: item),
@@ -72,9 +72,9 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
     if (!mounted) return;
 
     if (success) {
-      context.showSuccessSnackBar('${result.ingredient} updated');
+      context.showSuccessSnackBar('${result.ingredient} updated', bottomMargin: 88);
     } else {
-      context.showErrorSnackBar('Could not update item. Please try again.');
+      context.showErrorSnackBar('Could not update item. Please try again.', bottomMargin: 88);
     }
   }
 
@@ -111,12 +111,12 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
     if (!mounted) return;
 
     if (success) {
-      context.showSuccessSnackBar('${item.ingredient} removed from pantry');
+      context.showSuccessSnackBar('${item.ingredient} removed from pantry', bottomMargin: 88);
     } else {
-      context.showErrorSnackBar('Could not delete item. Please try again.');
+      context.showErrorSnackBar('Could not delete item. Please try again.', bottomMargin: 88);
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(pantryControllerProvider);

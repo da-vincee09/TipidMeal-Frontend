@@ -33,6 +33,11 @@ class MainShell extends StatelessWidget {
             label: 'Meals',
           ),
           NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
+            label: 'Planner',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.recommend_outlined),
             selectedIcon: Icon(Icons.recommend),
             label: 'For You',

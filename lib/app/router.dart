@@ -6,12 +6,15 @@ import 'package:meal_recommendation_app/features/authentication/presentation/scr
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/reset_password_screen.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/splash_screen.dart';
 import 'package:meal_recommendation_app/features/home/presentation/screens/home_screen.dart';
+import 'package:meal_recommendation_app/features/meal_planner/data/models/meal_plan_entry_model.dart';
+import 'package:meal_recommendation_app/features/meal_planner/presentation/screens/add_edit_meal_plan_entry_screen.dart';
 import 'package:meal_recommendation_app/features/meals/presentation/screens/meal_detail_screen.dart';
 import 'package:meal_recommendation_app/features/meals/presentation/screens/meals_screen.dart';
 import 'package:meal_recommendation_app/features/pantry/presentation/screens/pantry_screen.dart';
 import 'package:meal_recommendation_app/features/profile/presentation/screens/profile_screen.dart';
 import 'package:meal_recommendation_app/features/profile/presentation/screens/profile_setup_screen.dart';
 import 'package:meal_recommendation_app/features/recommendations/presentation/screens/recommendations_screen.dart';
+import 'package:meal_recommendation_app/features/meal_planner/presentation/screens/meal_planner_screen.dart';
 import 'routes.dart';
 
 final appRouter = GoRouter(
@@ -84,7 +87,7 @@ final appRouter = GoRouter(
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>
           MainShell(navigationShell: navigationShell),
-      branches: [
+            branches: [
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -105,6 +108,27 @@ final appRouter = GoRouter(
                   builder: (context, state) {
                     final mealId = state.pathParameters['id']!;
                     return MealDetailScreen(mealId: mealId);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.mealPlanner,
+              name: 'mealPlanner',
+              builder: (context, state) => const MealPlannerScreen(),
+              routes: [
+                GoRoute(
+                  path: 'add',
+                  builder: (context, state) {
+                    final extra = state.extra as Map<String, dynamic>?;
+                    return AddEditMealPlanEntryScreen(
+                      initialDate: extra?['date'] as DateTime?,
+                      existingEntry: extra?['entry'] as MealPlanEntryModel?,
+                    );
                   },
                 ),
               ],

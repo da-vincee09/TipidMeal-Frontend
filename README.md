@@ -2,7 +2,7 @@
 
 A budget-friendly meal recommendation app designed to help users discover practical, affordable meals based on their budget, cooking skills, dietary restrictions, ingredient preferences, and available pantry ingredients.
 
-> **Project status:** 🚧 In Development — **Week 2 Complete**
+> **Project status:** 🚧 In Development — **Week 4 In Progress**
 
 ---
 
@@ -368,6 +368,65 @@ This is important because the Flutter application uses a persistent `StatefulShe
 
 ---
 
+# 📅 Meal Planner — ✅ Complete
+
+The Meal Planner feature allows users to schedule meals from the meal database onto specific dates and meal slots (breakfast/lunch/dinner), and view them as a weekly calendar.
+
+Implemented:
+
+**Backend**
+
+* ✅ `MealPlanEntry` model with `profile_id`, `meal_id`, `planned_date`, `meal_slot`
+* ✅ `meal` relationship (`lazy="joined"`) for eager-loaded meal summaries in responses
+* ✅ Alembic migration for `meal_plan_entries`
+* ✅ Pydantic schemas (`MealPlanEntryCreate`, `MealPlanEntryUpdate`, `MealPlanEntryResponse`, `WeeklyPlanResponse`)
+* ✅ Repository layer (create, list by date range, get by id, update, delete)
+* ✅ Service layer with profile-ownership checks and meal-existence validation
+* ✅ Router (`/meal-planner`) with full CRUD endpoints
+* ✅ `estimated_cost_total` computed server-side for the weekly response
+* ✅ Profile-ownership enforcement (a user can only access their own plan entries)
+
+**Flutter**
+
+* ✅ `MealPlanEntryModel` / `WeeklyPlanModel` / `MealPlanMealSummaryModel`
+* ✅ Create/update request models
+* ✅ Remote datasource (`MealPlannerRemoteDatasource`)
+* ✅ Repository (`MealPlannerRepository`)
+* ✅ Riverpod `MealPlanController`
+* ✅ Weekly calendar screen with day-tab navigation
+* ✅ Previous/next week navigation
+* ✅ Breakfast / Lunch / Dinner slot grouping
+* ✅ Add meal to plan (meal picker + date picker + slot selector)
+* ✅ Edit planned meal
+* ✅ Delete planned meal with confirmation dialog
+* ✅ Optimistic delete (instant UI update, rollback on failure)
+* ✅ Silent background refresh after add/update (no loading flicker)
+* ✅ Snackbar feedback via the shared context extension
+* ✅ Loading, error, and empty states
+* ✅ Pull-to-refresh
+* ✅ Bottom navigation tab (`Planner`)
+* ✅ JWT-authenticated requests via existing `AuthInterceptor`
+
+```text
+Flutter
+   ↓
+MealPlannerScreen
+   ↓
+MealPlanController
+   ↓
+MealPlannerRepository
+   ↓
+MealPlannerRemoteDatasource
+   ↓
+FastAPI (/meal-planner)
+   ↓
+PostgreSQL
+```
+
+Meal plan entries are scoped to the authenticated user's profile, consistent with Pantry's access model.
+
+---
+
 # 🧭 Navigation — ✅ Complete
 
 The application now uses a bottom navigation shell containing:
@@ -375,6 +434,7 @@ The application now uses a bottom navigation shell containing:
 ```text
 Home
 Meals
+Planner
 Recommendations
 Pantry
 ```
@@ -387,7 +447,13 @@ Meal details use nested routing:
 /meals/:id
 ```
 
-The navigation structure allows users to move through the primary Week 2 application flow:
+Meal planner add/edit uses nested routing:
+
+```text
+/meal-planner/add
+```
+
+The navigation structure allows users to move through the primary application flow:
 
 ```text
 Login
@@ -396,11 +462,11 @@ Profile
   ↓
 Home
   ↓
- ┌─────────┬─────────┬────────────────┐
- ↓         ↓         ↓                ↓
-Meals    Pantry   Recommendations   Profile
- ↓                   ↓
-Details          Meal Details
+ ┌─────────┬───────────┬─────────┬────────────────┐
+ ↓         ↓           ↓         ↓                ↓
+Meals    Planner     Pantry   Recommendations   Profile
+ ↓                              ↓
+Details                    Meal Details
 ```
 
 ---
@@ -437,6 +503,7 @@ Protected backend features include:
 
 * Profile
 * Pantry
+* Meal Planner
 * Recommendations
 
 User-specific data is always associated with the authenticated user's profile.
@@ -591,6 +658,19 @@ lib/
 │   │       ├── screens/
 │   │       └── widgets/
 │   │
+│   ├── meal_planner/
+│   │   ├── data/
+│   │   │   ├── datasources/
+│   │   │   ├── models/
+│   │   │   ├── repositories/
+│   │   │   └── meal_planner_dependencies.dart
+│   │   ├── domain/
+│   │   │   └── repository/
+│   │   └── presentation/
+│   │       ├── providers/
+│   │       ├── screens/
+│   │       └── widgets/
+│   │
 │   └── recommendations/
 │       ├── data/
 │       │   ├── datasources/
@@ -640,7 +720,7 @@ The primary visual identity uses warm food-inspired colors:
 * Olive Green
 * Green
 
-The authentication, profile, pantry, meals, recommendations, and home screens have been styled to maintain a consistent visual language.
+The authentication, profile, pantry, meals, meal planner, recommendations, and home screens have been styled to maintain a consistent visual language.
 
 ---
 
@@ -660,6 +740,8 @@ FastAPI
 ├── Pantry
 │
 ├── Meals
+│
+├── Meal Planner
 │
 └── Recommendations
 ```
@@ -696,9 +778,7 @@ Supabase Storage
 
 ---
 
-# 📊 Week 2 Application Flow
-
-The primary Week 2 objective is now implemented:
+# 📊 Week 4 Application Flow
 
 ```text
 Login
@@ -707,19 +787,19 @@ Profile Check
   ↓
 Home
   ↓
-┌─────────────────────────────┐
-│                             │
-↓                             ↓
-Meals                       Pantry
-│                             │
-↓                             ↓
-Meal Details          Available Ingredients
-                              │
-                              ↓
-                       Recommendations
-                              │
-                              ↓
-                       Meal Details
+┌─────────────────────────────────────────────┐
+│               │              │               │
+↓               ↓              ↓               ↓
+Meals        Planner        Pantry     Recommendations
+│               │              │
+↓               ↓              ↓
+Meal Details  Add/Edit    Available Ingredients
+              Entry              │
+                                 ↓
+                          Recommendations
+                                 │
+                                 ↓
+                          Meal Details
 ```
 
 Recommendations are personalized using:
@@ -740,7 +820,7 @@ Ranked Recommendations
 
 # 🧪 Testing & Edge Cases
 
-Implemented and tested during Week 2 development:
+Implemented and tested:
 
 * ✅ Empty pantry
 * ✅ Pantry CRUD
@@ -762,6 +842,11 @@ Implemented and tested during Week 2 development:
 * ✅ API loading states
 * ✅ API error states
 * ✅ Empty recommendation states
+* ✅ Meal planner CRUD (create/read/update/delete)
+* ✅ Meal planner weekly navigation
+* ✅ Meal planner empty-day state
+* ✅ Meal planner optimistic delete + rollback on failure
+* ✅ Meal planner profile-ownership enforcement (backend)
 
 ---
 
@@ -930,15 +1015,31 @@ The Supabase service-role key belongs exclusively on the FastAPI backend.
 * [x] Cached network images
 * [x] Final Week 2 screen polish
 
+## Phase 6 — Meal Planner ✅
+
+* [x] `MealPlanEntry` backend model + migration
+* [x] Meal relationship fix (`lazy="joined"`)
+* [x] Pydantic schemas
+* [x] Repository / service / router (full CRUD)
+* [x] `estimated_cost_total` fix
+* [x] Flutter models, datasource, repository
+* [x] Riverpod `MealPlanController`
+* [x] Weekly calendar screen
+* [x] Day-tab navigation
+* [x] Add/edit meal plan entry screen
+* [x] Meal picker with search
+* [x] Delete with confirmation dialog
+* [x] Optimistic delete + rollback
+* [x] Snackbar feedback (shared extension)
+* [x] Bottom navigation integration
+
 ---
 
 # 🚧 Future / Not Yet Implemented Features
 
-The following features are **not yet implemented** and are outside the completed Week 2 core application scope.
+The following features are **not yet implemented** and are the primary focus for the remainder of Week 4.
 
 ### ⚙️ Settings — 🔲 Not Yet Implemented
-
-A dedicated Settings screen has not yet been implemented.
 
 Planned functionality includes:
 
@@ -968,8 +1069,6 @@ Supabase Auth
 Login
 ```
 
-The dedicated Settings-based sign-out UI has not yet been implemented.
-
 ### ⭐ Favorites / Saved Meals — 🔲 Not Yet Implemented
 
 * [ ] Save meals
@@ -977,11 +1076,15 @@ The dedicated Settings-based sign-out UI has not yet been implemented.
 * [ ] Favorites screen
 * [ ] Persistent saved meals
 
+### 🛒 Grocery List Generator — 🔲 Not Yet Implemented
+
+* [ ] Generate grocery list from planned meals
+* [ ] Combine duplicate ingredients across the week
+* [ ] Track purchased ingredients
+* [ ] Integrate grocery requirements with pantry
+* [ ] Weekly budget overview based on planned meals
+
 ### 🔎 Advanced Meal Search & Filtering — 🔲 Not Yet Implemented
-
-Basic meal search is currently implemented.
-
-Future improvements may include:
 
 * [ ] Food category filtering
 * [ ] Cost filtering
@@ -996,20 +1099,6 @@ Future improvements may include:
 * [ ] Dinner
 * [ ] Snacks
 * [ ] Category-based filtering
-
-### 📅 Weekly Meal Planner — 🔲 Not Yet Implemented
-
-* [ ] Weekly meal schedule
-* [ ] Assign meals to specific days
-* [ ] Daily meal planning
-* [ ] Weekly budget overview
-
-### 🛒 Grocery List Generator — 🔲 Not Yet Implemented
-
-* [ ] Generate grocery list from selected meals
-* [ ] Combine duplicate ingredients
-* [ ] Track purchased ingredients
-* [ ] Integrate grocery requirements with pantry
 
 ### 🥗 Nutrition Information — 🔲 Not Yet Implemented
 
@@ -1053,7 +1142,7 @@ Potential future functionality:
 
 # 📌 Project Status
 
-> **Current milestone: Week 2 Complete 🎉**
+> **Current milestone: Week 4 In Progress 🚧**
 
 TipidMeal now has a working core application flow consisting of:
 
@@ -1066,6 +1155,8 @@ Home
       ↓
 Meals
       ↓
+Meal Planner
+      ↓
 Pantry
       ↓
 Deterministic Recommendations
@@ -1073,52 +1164,29 @@ Deterministic Recommendations
 Meal Details
 ```
 
-The completed Week 2 application includes:
+Completed so far in Week 4:
 
-* ✅ Supabase authentication
-* ✅ Profile creation and management
-* ✅ Profile picture upload
-* ✅ Home dashboard
-* ✅ Meal browsing
-* ✅ Meal search
-* ✅ Meal details
-* ✅ Pantry CRUD
-* ✅ Ingredient autocomplete
-* ✅ Quantity-aware pantry matching
-* ✅ Ingredient substitutions
-* ✅ Optional ingredient handling
-* ✅ Allergy filtering
-* ✅ Disliked ingredient scoring
-* ✅ Budget scoring
-* ✅ Cooking skill scoring
-* ✅ Deterministic recommendation ranking
-* ✅ Recommendation refresh after pantry changes
-* ✅ Bottom navigation
-* ✅ JWT-protected API communication
-* ✅ Loading, error, and empty states
-* ✅ Light and dark theme support
-* ✅ Consistent UI styling
+* ✅ Meal Planner (backend + Flutter, full CRUD)
+* ✅ Weekly calendar UI with day-tab navigation
+* ✅ Meal-slot grouping (breakfast/lunch/dinner)
+* ✅ Optimistic delete with rollback
+* ✅ Consistent snackbar/dialog UX across Pantry and Meal Planner
 
-The recommendation engine operates using deterministic, explainable business rules rather than an external AI API.
-
-### Current Limitations
-
-The following are intentionally **not yet implemented**:
+### Current Limitations / Remaining Week 4 Work
 
 * 🔲 Settings screen
 * 🔲 User-facing dark/light mode preference control
 * 🔲 Sign out inside Settings
 * 🔲 Favorites / saved meals
+* 🔲 Grocery list generator
 * 🔲 Food categories
 * 🔲 Advanced meal filtering
-* 🔲 Weekly meal planner
-* 🔲 Grocery list generator
 * 🔲 Full nutrition information
 * 🔲 Notifications
 * 🔲 AI-assisted recommendations
 * 🔲 Admin functionality
 
-These features can be implemented in later development phases after the Week 2 core application has been tested and evaluated.
+These remain the primary targets for the rest of Week 4 and subsequent phases.
 
 ---
 

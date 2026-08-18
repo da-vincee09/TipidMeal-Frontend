@@ -6,6 +6,7 @@ extension ContextExtensions on BuildContext {
     bool isError = false,
     Color? backgroundColor,
     Duration duration = const Duration(seconds: 3),
+    double bottomMargin = 16,
   }) {
     final theme = Theme.of(this);
     final resolvedColor = backgroundColor ??
@@ -34,7 +35,7 @@ extension ContextExtensions on BuildContext {
           backgroundColor: resolvedColor,
           duration: duration,
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
+          margin: EdgeInsets.fromLTRB(16, 0, 16, bottomMargin),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -42,11 +43,11 @@ extension ContextExtensions on BuildContext {
       );
   }
 
-  void showErrorSnackBar(String message) {
-    showSnackBar(message, isError: true);
+  void showErrorSnackBar(String message, {double bottomMargin = 16}) {
+    showSnackBar(message, isError: true, bottomMargin: bottomMargin);
   }
 
-  void showSuccessSnackBar(String message) {
-    showSnackBar(message, backgroundColor: Colors.green);
+  void showSuccessSnackBar(String message, {double bottomMargin = 16}) {
+    showSnackBar(message, backgroundColor: Colors.green, bottomMargin: bottomMargin);
   }
 }
