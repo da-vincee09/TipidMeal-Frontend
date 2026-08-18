@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_recommendation_app/app/app.dart';
+import 'package:meal_recommendation_app/features/grocery_list/data/grocery_checklist_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
@@ -21,4 +22,7 @@ Future<void> main() async {
       child: TipidMealApp(),
     ),
   );
+
+  // Fire-and-forget — don't block first frame on this.
+  GroceryChecklistStorage.cleanupOldWeeks();
 }

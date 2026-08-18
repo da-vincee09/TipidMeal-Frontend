@@ -124,6 +124,7 @@ Implemented:
 * ✅ Navigation to Recommendations
 * ✅ Navigation to Pantry
 * ✅ Navigation to Profile
+* ✅ Quick Actions (Meal Planner, Grocery List)
 
 The Home screen provides a summary of the user's current meal-planning information.
 
@@ -132,6 +133,7 @@ Home
  ├── Greeting
  ├── Daily Budget
  ├── Pantry Summary
+ ├── Quick Actions (Planner, Grocery List)
  ├── Top Recommendations
  └── Quick Navigation
 ```
@@ -156,6 +158,8 @@ Implemented:
 * ✅ Quantity support
 * ✅ Unit support
 * ✅ Ingredient autocomplete
+* ✅ Unit auto-detection from meal data (single-unit ingredients auto-select; multi-unit ingredients narrow the picker to only their known units)
+* ✅ Backend-driven unit list (`GET /meals/units`) — no hardcoded unit set on the client
 * ✅ Add ingredient dialog
 * ✅ Edit ingredient dialog
 * ✅ Loading states
@@ -198,6 +202,10 @@ Pantry Items
 ```
 
 A user cannot access another user's pantry through the application API.
+
+### Ingredient/unit matching
+
+Pantry and recipe ingredients are matched by an exact `(ingredient, unit)` key across Pantry, Recommendations, and Grocery List. Free-text unit entry previously allowed mismatched spellings (e.g. `"pcs"` vs `"cloves"`) to silently break matching — a pantry item could exist without ever being recognized as satisfying a recipe's requirement. This has been addressed by constraining unit selection to a backend-sourced canonical list, with automatic single-unit detection based on how each ingredient is actually used across seeded meals.
 
 ---
 
@@ -406,6 +414,7 @@ Implemented:
 * ✅ Pull-to-refresh
 * ✅ Bottom navigation tab (`Planner`)
 * ✅ JWT-authenticated requests via existing `AuthInterceptor`
+* ✅ Grocery List entry point (AppBar action, scoped to the currently-viewed week)
 
 ```text
 Flutter
@@ -427,9 +436,65 @@ Meal plan entries are scoped to the authenticated user's profile, consistent wit
 
 ---
 
+# 🛒 Grocery List — ✅ Complete
+
+The Grocery List feature generates a shopping list from the user's planned meals for a given date range, offset against what's already in their pantry.
+
+The grocery list is **fully derived** — there is no dedicated database table for it. It is computed on request from `meal_plan_entries` and `pantry_items`.
+
+Implemented:
+
+**Backend**
+
+* ✅ `GroceryListResponse` / `GroceryListItem` schemas
+* ✅ Aggregation of required ingredients across all planned meals in a date range
+* ✅ Aggregation of current pantry quantities
+* ✅ Per-`(ingredient, unit)` subtraction — ingredients where the pantry already covers the requirement are excluded entirely
+* ✅ Router (`/grocery-list`) with default current-week (Monday–Sunday) date range when no dates are supplied
+* ✅ Explicit `start_date`/`end_date` query parameter support
+* ✅ `start_date > end_date` validation
+* ✅ Profile-ownership enforcement
+
+**Flutter**
+
+* ✅ `GroceryListItemModel` / `GroceryListResponseModel`
+* ✅ Remote datasource (`GroceryListRemoteDatasource`)
+* ✅ Repository (`GroceryListRepository`)
+* ✅ Riverpod `GroceryListController`
+* ✅ Grocery List screen with per-item required/pantry/to-buy quantities
+* ✅ Checkbox-based checklist UI
+* ✅ Persistent checklist state via `SharedPreferences`, keyed per week
+* ✅ Automatic stale-checklist cleanup on app launch (weeks older than a configurable threshold, default 8 weeks)
+* ✅ Launched from Meal Planner (AppBar action) and Home (Quick Actions)
+* ✅ Loading, error, and empty states
+* ✅ Pull-to-refresh
+
+```text
+Flutter
+   ↓
+GroceryListScreen
+   ↓
+GroceryListController
+   ↓
+GroceryListRepository
+   ↓
+GroceryListRemoteDatasource
+   ↓
+FastAPI (/grocery-list)
+   ↓
+PostgreSQL (meal_plan_entries + pantry_items)
+```
+
+### Known limitations
+
+* Checklist state is local-only (`SharedPreferences`) and does not sync across devices.
+* Grocery list matching uses the same exact `(ingredient, unit)` matching as Recommendations — see Pantry's "Ingredient/unit matching" section above.
+
+---
+
 # 🧭 Navigation — ✅ Complete
 
-The application now uses a bottom navigation shell containing:
+The application uses a bottom navigation shell containing:
 
 ```text
 Home
@@ -453,6 +518,12 @@ Meal planner add/edit uses nested routing:
 /meal-planner/add
 ```
 
+Grocery List is a standalone pushed route, launched from Meal Planner or Home rather than a bottom-nav tab:
+
+```text
+/grocery-list
+```
+
 The navigation structure allows users to move through the primary application flow:
 
 ```text
@@ -465,8 +536,8 @@ Home
  ┌─────────┬───────────┬─────────┬────────────────┐
  ↓         ↓           ↓         ↓                ↓
 Meals    Planner     Pantry   Recommendations   Profile
- ↓                              ↓
-Details                    Meal Details
+ ↓         ↓                    ↓
+Details  Grocery List      Meal Details
 ```
 
 ---
@@ -505,6 +576,9 @@ Protected backend features include:
 * Pantry
 * Meal Planner
 * Recommendations
+* Grocery List
+
+Note: `GET /meals/units` and `GET /meals/ingredients/suggestions` are intentionally **unauthenticated**, since they expose no user-specific data — just the set of units/ingredients used across the shared meal database.
 
 User-specific data is always associated with the authenticated user's profile.
 
@@ -671,13 +745,27 @@ lib/
 │   │       ├── screens/
 │   │       └── widgets/
 │   │
-│   └── recommendations/
+│   ├── recommendations/
+│   │   ├── data/
+│   │   │   ├── datasources/
+│   │   │   ├── models/
+│   │   │   └── repositories/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   └── repositories/
+│   │   └── presentation/
+│   │       ├── providers/
+│   │       ├── screens/
+│   │       └── widgets/
+│   │
+│   └── grocery_list/
 │       ├── data/
 │       │   ├── datasources/
 │       │   ├── models/
-│       │   └── repositories/
+│       │   ├── repositories/
+│       │   ├── grocery_list_dependencies.dart
+│       │   └── grocery_checklist_storage.dart
 │       ├── domain/
-│       │   ├── entities/
 │       │   └── repositories/
 │       └── presentation/
 │           ├── providers/
@@ -720,7 +808,7 @@ The primary visual identity uses warm food-inspired colors:
 * Olive Green
 * Green
 
-The authentication, profile, pantry, meals, meal planner, recommendations, and home screens have been styled to maintain a consistent visual language.
+The authentication, profile, pantry, meals, meal planner, recommendations, grocery list, and home screens have been styled to maintain a consistent visual language.
 
 ---
 
@@ -743,7 +831,9 @@ FastAPI
 │
 ├── Meal Planner
 │
-└── Recommendations
+├── Recommendations
+│
+└── Grocery List
 ```
 
 The general API flow is:
@@ -795,11 +885,11 @@ Meals        Planner        Pantry     Recommendations
 ↓               ↓              ↓
 Meal Details  Add/Edit    Available Ingredients
               Entry              │
-                                 ↓
-                          Recommendations
-                                 │
-                                 ↓
-                          Meal Details
+                 ↓                ↓
+            Grocery List   Recommendations
+                                   │
+                                   ↓
+                            Meal Details
 ```
 
 Recommendations are personalized using:
@@ -814,6 +904,18 @@ Meals
 Business Rules
       ↓
 Ranked Recommendations
+```
+
+Grocery List is derived using:
+
+```text
+Meal Planner (date range)
++
+Pantry
+      ↓
+Required − Available
+      ↓
+Grocery List
 ```
 
 ---
@@ -847,6 +949,17 @@ Implemented and tested:
 * ✅ Meal planner empty-day state
 * ✅ Meal planner optimistic delete + rollback on failure
 * ✅ Meal planner profile-ownership enforcement (backend)
+* ✅ Ingredient-unit auto-detection (single-unit case)
+* ✅ Grocery list empty state (no meals planned)
+* ✅ Grocery list checklist persistence across screen re-entry
+* ✅ Grocery list checklist isolation across different weeks
+* ✅ Dialog scroll/overflow fix (unit chip list in AddPantryItemDialog)
+* ✅ Home empty-recommendations layout overflow fix
+
+### Not yet verified
+
+* 🔲 Ingredient-unit auto-detection for the ambiguous case (an ingredient used with 2+ different units across meals) — not yet exercised against real seed data
+* 🔲 Grocery list correctness against a fully populated week (multiple meals/slots, overlapping ingredients)
 
 ---
 
@@ -1033,6 +1146,31 @@ The Supabase service-role key belongs exclusively on the FastAPI backend.
 * [x] Snackbar feedback (shared extension)
 * [x] Bottom navigation integration
 
+## Phase 7 — Grocery List ✅
+
+* [x] `GroceryListItem` / `GroceryListResponse` schemas
+* [x] Required-ingredient aggregation across a date range
+* [x] Pantry-quantity aggregation
+* [x] Required-minus-available calculation, per `(ingredient, unit)`
+* [x] Router (`/grocery-list`) with default-week logic
+* [x] `start_date`/`end_date` validation
+* [x] Flutter model, datasource, repository
+* [x] Riverpod `GroceryListController`
+* [x] Grocery List screen with checklist UI
+* [x] `SharedPreferences`-backed checklist persistence, keyed per week
+* [x] Stale-checklist cleanup on app launch
+* [x] Entry points from Meal Planner and Home
+
+## Phase 8 — Ingredient/Unit Matching ✅
+
+* [x] Identified exact-string `(ingredient, unit)` matching as a shared fragility across Recommendations, Pantry, and Grocery List
+* [x] `GET /meals/units` endpoint — backend-sourced canonical unit list
+* [x] `GET /meals/ingredients/suggestions` extended to return per-ingredient known units, not just names
+* [x] Pantry dialog: unit selection constrained to `ChoiceChip`s instead of free text
+* [x] Single-unit ingredients auto-select their unit on suggestion pick
+* [x] Multi-unit ingredients narrow the picker to only their known units
+* [x] Fallback to full unit list for unmatched/new ingredients
+
 ---
 
 # 🚧 Future / Not Yet Implemented Features
@@ -1075,14 +1213,6 @@ Login
 * [ ] Remove saved meals
 * [ ] Favorites screen
 * [ ] Persistent saved meals
-
-### 🛒 Grocery List Generator — 🔲 Not Yet Implemented
-
-* [ ] Generate grocery list from planned meals
-* [ ] Combine duplicate ingredients across the week
-* [ ] Track purchased ingredients
-* [ ] Integrate grocery requirements with pantry
-* [ ] Weekly budget overview based on planned meals
 
 ### 🔎 Advanced Meal Search & Filtering — 🔲 Not Yet Implemented
 
@@ -1157,6 +1287,8 @@ Meals
       ↓
 Meal Planner
       ↓
+Grocery List
+      ↓
 Pantry
       ↓
 Deterministic Recommendations
@@ -1170,7 +1302,12 @@ Completed so far in Week 4:
 * ✅ Weekly calendar UI with day-tab navigation
 * ✅ Meal-slot grouping (breakfast/lunch/dinner)
 * ✅ Optimistic delete with rollback
-* ✅ Consistent snackbar/dialog UX across Pantry and Meal Planner
+* ✅ Grocery List (backend + Flutter, derived from Meal Planner + Pantry)
+* ✅ Persistent grocery checklist state, with stale-week cleanup
+* ✅ Ingredient/unit matching fix (backend unit endpoint + constrained pantry unit picker)
+* ✅ Home Quick Actions (Meal Planner, Grocery List)
+* ✅ Consistent snackbar/dialog UX across Pantry, Meal Planner, and Grocery List
+* ✅ UI overflow fixes (pantry dialog unit chips, Home empty-recommendations state)
 
 ### Current Limitations / Remaining Week 4 Work
 
@@ -1178,13 +1315,14 @@ Completed so far in Week 4:
 * 🔲 User-facing dark/light mode preference control
 * 🔲 Sign out inside Settings
 * 🔲 Favorites / saved meals
-* 🔲 Grocery list generator
 * 🔲 Food categories
 * 🔲 Advanced meal filtering
 * 🔲 Full nutrition information
 * 🔲 Notifications
 * 🔲 AI-assisted recommendations
 * 🔲 Admin functionality
+* 🔲 Multi-unit ingredient auto-detection — not yet exercised against real ambiguous data
+* 🔲 Grocery checklist cloud sync (currently local-only via `SharedPreferences`)
 
 These remain the primary targets for the rest of Week 4 and subsequent phases.
 

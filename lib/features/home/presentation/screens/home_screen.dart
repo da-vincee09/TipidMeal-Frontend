@@ -111,6 +111,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 20),
+
+              // Quick actions — meal planner and grocery list, neither
+              // of which has a path from Home otherwise.
+              Text(
+                'Quick Actions',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: AppColors.cream,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: _QuickActionCard(
+                      icon: Icons.calendar_month_outlined,
+                      label: 'Meal Planner',
+                      onTap: () => context.push('/meal-planner'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _QuickActionCard(
+                      icon: Icons.shopping_cart_outlined,
+                      label: 'Grocery List',
+                      onTap: () => context.push('/grocery-list'),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 28),
 
               // Top recommendations preview
@@ -191,6 +222,49 @@ class _SummaryCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.burntOrange.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickActionCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _QuickActionCard({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.cream,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Icon(icon, color: AppColors.burntOrange, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.burntOrange,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
@@ -325,15 +399,14 @@ class _PreviewMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 100,
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
         color: AppColors.cream.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: AppColors.cream.withValues(alpha: 0.8)),
           const SizedBox(height: 8),

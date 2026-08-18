@@ -124,6 +124,19 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
           'Meal Planner',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
+         actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined),
+            tooltip: 'Grocery List',
+            onPressed: () => context.push(
+              '/grocery-list',
+              extra: {
+                'startDate': _weekStart,
+                'endDate': _weekStart.add(const Duration(days: 6)),
+              },
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [

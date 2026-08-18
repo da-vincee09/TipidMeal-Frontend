@@ -5,6 +5,7 @@ import 'package:meal_recommendation_app/features/authentication/presentation/scr
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/register_screen.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/reset_password_screen.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/splash_screen.dart';
+import 'package:meal_recommendation_app/features/grocery_list/presentation/screens/grocery_list_screen.dart';
 import 'package:meal_recommendation_app/features/home/presentation/screens/home_screen.dart';
 import 'package:meal_recommendation_app/features/meal_planner/data/models/meal_plan_entry_model.dart';
 import 'package:meal_recommendation_app/features/meal_planner/presentation/screens/add_edit_meal_plan_entry_screen.dart';
@@ -79,6 +80,19 @@ final appRouter = GoRouter(
         state: state,
         child: const ProfileScreen(),
       ),
+    ),
+
+
+    GoRoute(
+      path: AppRoutes.groceryList,
+      name: 'groceryList',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return GroceryListScreen(
+          startDate: extra?['startDate'] as DateTime?,
+          endDate: extra?['endDate'] as DateTime?,
+        );
+      },
     ),
 
     // ------------------------------------------------------------

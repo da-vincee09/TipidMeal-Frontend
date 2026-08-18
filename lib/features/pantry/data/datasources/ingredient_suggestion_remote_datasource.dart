@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:meal_recommendation_app/core/errors/api_exception.dart';
 import 'package:meal_recommendation_app/core/networks/api_constants.dart';
+import 'package:meal_recommendation_app/features/pantry/data/models/ingredient_suggestion_model.dart';
 
 abstract class IngredientSuggestionRemoteDatasource {
-  Future<List<String>> search(String query);
+  Future<List<IngredientSuggestionModel>> search(String query);
 }
 
 class IngredientSuggestionRemoteDatasourceImpl
@@ -14,7 +15,7 @@ class IngredientSuggestionRemoteDatasourceImpl
   IngredientSuggestionRemoteDatasourceImpl({required Dio dio}) : _dio = dio;
 
   @override
-  Future<List<String>> search(String query) async {
+  Future<List<IngredientSuggestionModel>> search(String query) async {
     if (query.trim().isEmpty) return [];
 
     try {
@@ -22,7 +23,10 @@ class IngredientSuggestionRemoteDatasourceImpl
         '${ApiConstants.meals}/ingredients/suggestions',
         queryParameters: {'search': query.trim()},
       );
-      return (response.data as List<dynamic>).cast<String>();
+      return (response.data as List<dynamic>)
+          .map((e) =>
+              IngredientSuggestionModel.fromJson(e as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       // Suggestions are non-critical — fail quietly to an empty list rather
       // than blocking the user from typing their own ingredient.
