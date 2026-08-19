@@ -5,6 +5,7 @@ import 'package:meal_recommendation_app/features/authentication/presentation/scr
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/register_screen.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/reset_password_screen.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/screens/splash_screen.dart';
+import 'package:meal_recommendation_app/features/favorites/presentation/screens/favorites_screen.dart';
 import 'package:meal_recommendation_app/features/grocery_list/presentation/screens/grocery_list_screen.dart';
 import 'package:meal_recommendation_app/features/home/presentation/screens/home_screen.dart';
 import 'package:meal_recommendation_app/features/meal_planner/data/models/meal_plan_entry_model.dart';
@@ -16,6 +17,7 @@ import 'package:meal_recommendation_app/features/profile/presentation/screens/pr
 import 'package:meal_recommendation_app/features/profile/presentation/screens/profile_setup_screen.dart';
 import 'package:meal_recommendation_app/features/recommendations/presentation/screens/recommendations_screen.dart';
 import 'package:meal_recommendation_app/features/meal_planner/presentation/screens/meal_planner_screen.dart';
+import 'package:meal_recommendation_app/features/settings/presentation/screens/settings_screen.dart';
 import 'routes.dart';
 
 final appRouter = GoRouter(
@@ -82,7 +84,6 @@ final appRouter = GoRouter(
       ),
     ),
 
-
     GoRoute(
       path: AppRoutes.groceryList,
       name: 'groceryList',
@@ -93,6 +94,31 @@ final appRouter = GoRouter(
           endDate: extra?['endDate'] as DateTime?,
         );
       },
+    ),
+
+    GoRoute(
+      path: AppRoutes.favorites,
+      name: 'favorites',
+      builder: (context, state) => const FavoritesScreen(),
+    ),
+
+    GoRoute(
+      path: '/meal-detail/:id',
+      name: 'mealDetailStandalone',
+      builder: (context, state) {
+        final mealId = state.pathParameters['id']!;
+        return MealDetailScreen(mealId: mealId);
+      },
+    ),
+
+    GoRoute(
+      path: AppRoutes.settings,
+      name: 'settings',
+      pageBuilder: (context, state) => buildPageWithTransition(
+        context: context,
+        state: state,
+        child: const SettingsScreen(),
+      ),
     ),
 
     // ------------------------------------------------------------

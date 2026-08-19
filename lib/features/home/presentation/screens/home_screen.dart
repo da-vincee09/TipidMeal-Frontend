@@ -43,12 +43,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.burntOrange,
-      appBar: AppBar(
+            appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.cream,
         elevation: 0,
         scrolledUnderElevation: 0,
         actions: [
+          IconButton(
+            onPressed: () => context.push(AppRoutes.favorites),
+            icon: const Icon(Icons.favorite_border_rounded),
+            color: AppColors.cream,
+            tooltip: 'Favorites',
+          ),
           IconButton(
             onPressed: () => context.push(AppRoutes.profile),
             icon: const Icon(Icons.person_outline_rounded),

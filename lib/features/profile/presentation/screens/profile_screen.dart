@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:meal_recommendation_app/app/colors.dart';
+import 'package:meal_recommendation_app/app/routes.dart';
 import 'package:meal_recommendation_app/core/extensions/context_extension.dart';
 import 'package:meal_recommendation_app/features/profile/data/models/profile_model.dart';
 import 'package:meal_recommendation_app/features/profile/data/models/profile_update_request.dart';
@@ -113,12 +115,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             onPressed: () => _handleCancelEdit(context),
           )
         : null,
-        actions: [
-          if (!_isEditing)
+          actions: [
+          if (!_isEditing) ...[
+            IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: () => context.push(AppRoutes.settings),
+            ),
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               onPressed: () => setState(() => _isEditing = true),
             ),
+          ],
         ],
       ),
       body: SafeArea(

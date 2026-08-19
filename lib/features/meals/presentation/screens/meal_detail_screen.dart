@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_recommendation_app/app/colors.dart';
 import 'package:meal_recommendation_app/features/meals/presentation/providers/meal_provider.dart';
+import 'package:meal_recommendation_app/features/favorites/presentation/widgets/favorite_button.dart';
 
 class MealDetailScreen extends ConsumerWidget {
   final String mealId;
@@ -36,7 +37,7 @@ class MealDetailScreen extends ConsumerWidget {
             physics: const BouncingScrollPhysics(),
             slivers: [
               // ================= HERO APP BAR =================
-              SliverAppBar(
+                            SliverAppBar(
                 expandedHeight: 300,
                 pinned: true,
                 stretch: true,
@@ -46,6 +47,17 @@ class MealDetailScreen extends ConsumerWidget {
                 iconTheme: const IconThemeData(
                   color: Colors.white,
                 ),
+                actions: [
+                  FavoriteButton(
+                    mealId: meal.id,
+                    mealName: meal.name,
+                    estimatedCost: meal.estimatedCost,
+                    imageUrl: meal.imageUrl,
+                    activeColor: Colors.redAccent,
+                    inactiveColor: Colors.white,
+                  ),
+                  const SizedBox(width: 4),
+                ],
                 flexibleSpace: Stack(
                   fit: StackFit.expand,
                   children: [

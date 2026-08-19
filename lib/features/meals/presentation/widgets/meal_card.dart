@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_recommendation_app/app/colors.dart';
+import 'package:meal_recommendation_app/features/favorites/presentation/widgets/favorite_button.dart';
 import 'package:meal_recommendation_app/features/meals/data/models/meal_model.dart';
 
-class MealCard extends StatelessWidget {
+class MealCard extends ConsumerWidget {
   final MealModel meal;
   final VoidCallback onTap;
 
@@ -14,7 +16,7 @@ class MealCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Material(
@@ -27,20 +29,43 @@ class MealCard extends StatelessWidget {
           height: 120,
           child: Row(
             children: [
-              SizedBox(
-                width: 92,
-                height: 120,
-                child: meal.imageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: meal.imageUrl!,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: AppColors.burntOrange.withValues(alpha: 0.08),
-                        ),
-                        errorWidget: (context, url, error) =>
-                            _placeholderIcon(),
-                      )
-                    : _placeholderIcon(),
+              Stack(
+                children: [
+                  SizedBox(
+                    width: 92,
+                    height: 120,
+                    child: meal.imageUrl != null
+                        ? CachedNetworkImage(
+                            imageUrl: meal.imageUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: AppColors.burntOrange.withValues(alpha: 0.08),
+                            ),
+                            errorWidget: (context, url, error) =>
+                                _placeholderIcon(),
+                          )
+                        : _placeholderIcon(),
+                  ),
+                  Positioned(
+                    top: 2,
+                    right: 2,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        shape: BoxShape.circle,
+                      ),
+                      child: FavoriteButton(
+                        mealId: meal.id,
+                        mealName: meal.name,
+                        estimatedCost: meal.estimatedCost,
+                        imageUrl: meal.imageUrl,
+                        activeColor: Colors.redAccent,
+                        inactiveColor: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ],
               ),
 
               Expanded(

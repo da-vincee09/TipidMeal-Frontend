@@ -2,7 +2,7 @@
 
 A budget-friendly meal recommendation app designed to help users discover practical, affordable meals based on their budget, cooking skills, dietary restrictions, ingredient preferences, and available pantry ingredients.
 
-> **Project status:** 🚧 In Development — **Week 4 In Progress**
+> **Project status:** 🚧 In Development — **Week 6 Complete**
 
 ---
 
@@ -45,6 +45,8 @@ Login        Profile Exists?        │
            Home   Profile Setup     │
 ```
 
+Sign out is accessible via **Settings**, reusing this same `AuthController.signOut()` flow — see the Settings section below.
+
 ---
 
 ## 👤 Profile — ✅ Complete
@@ -75,6 +77,7 @@ Implemented:
 * ✅ Discard-changes confirmation
 * ✅ Profile-status routing after login/register
 * ✅ Profile-status routing from splash
+* ✅ Settings entry point (AppBar action)
 
 Profile image uploads use a dedicated FastAPI endpoint backed by Supabase Storage.
 
@@ -124,6 +127,7 @@ Implemented:
 * ✅ Navigation to Recommendations
 * ✅ Navigation to Pantry
 * ✅ Navigation to Profile
+* ✅ Navigation to Favorites (AppBar action)
 * ✅ Quick Actions (Meal Planner, Grocery List)
 
 The Home screen provides a summary of the user's current meal-planning information.
@@ -135,7 +139,7 @@ Home
  ├── Pantry Summary
  ├── Quick Actions (Planner, Grocery List)
  ├── Top Recommendations
- └── Quick Navigation
+ └── Quick Navigation (incl. Favorites)
 ```
 
 ---
@@ -238,6 +242,7 @@ Implemented:
 * ✅ Cached network images
 * ✅ Graceful handling of meals without images
 * ✅ Seeded meal database
+* ✅ Favorite button on meal cards and meal detail screen
 
 Current seeded meals include:
 
@@ -247,7 +252,7 @@ Current seeded meals include:
 * Vegetable Lumpia
 * Ginisang Munggo
 
-Meal navigation supports nested meal-detail routes:
+Meal navigation supports nested meal-detail routes (within the Meals tab) and a standalone meal-detail route (from Favorites and other non-shell entry points):
 
 ```text
 Meals
@@ -260,7 +265,8 @@ Meal Details
   ├── Cooking Time
   ├── Difficulty
   ├── Ingredients
-  └── Instructions
+  ├── Instructions
+  └── Favorite toggle
 ```
 
 ---
@@ -492,6 +498,98 @@ PostgreSQL (meal_plan_entries + pantry_items)
 
 ---
 
+# ⭐ Favorites — ✅ Complete
+
+The Favorites feature allows users to bookmark meals from the meal database for quick access, independent of whether the meal is scheduled anywhere in their Meal Planner.
+
+Implemented:
+
+**Backend**
+
+* ✅ `Favorite` model with unique `(profile_id, meal_id)` constraint
+* ✅ `meal` relationship (`lazy="joined"`) for eager-loaded meal summaries in responses
+* ✅ Cascading deletion on both `profile_id` and `meal_id` (a favorite is a bookmark, not a scheduling record)
+* ✅ Alembic migration for `favorites`
+* ✅ Pydantic schemas (`FavoriteCreate`, `FavoriteResponse`, `FavoriteMealSummary`)
+* ✅ Repository layer (create, get by profile+meal, list by profile, delete)
+* ✅ Service layer with idempotent add and idempotent remove
+* ✅ Router (`/favorites`) — add, list, remove (keyed by `meal_id`)
+* ✅ Profile-ownership enforcement
+
+**Flutter**
+
+* ✅ `Favorite` entity / `FavoriteModel` / `FavoriteMealSummaryModel`
+* ✅ Remote datasource (`FavoritesRemoteDatasource`)
+* ✅ Repository (`FavoritesRepository`)
+* ✅ Riverpod `FavoritesController`
+* ✅ Optimistic add (instant UI update using known meal fields, confirmed/rolled back against the server response)
+* ✅ Optimistic remove (instant UI update, rollback on failure)
+* ✅ `FavoriteButton` widget — heart icon reflecting live favorite state
+* ✅ Favorite button on `MealCard` (thumbnail overlay)
+* ✅ Favorite button on `MealDetailScreen` (AppBar action)
+* ✅ Favorites screen — list of favorited meals with empty state
+* ✅ Standalone meal-detail route (`/meal-detail/:id`) for navigating from outside the bottom-nav shell
+* ✅ Entry point from Home (AppBar action)
+
+```text
+Flutter
+   ↓
+FavoriteButton / FavoritesScreen
+   ↓
+FavoritesController
+   ↓
+FavoritesRepository
+   ↓
+FavoritesRemoteDatasource
+   ↓
+FastAPI (/favorites)
+   ↓
+PostgreSQL
+```
+
+### Notable fix: shell-nested route navigation
+
+Tapping a favorited meal originally reused the shell-nested `/meals/:id` path (the same route used when browsing from the Meals tab). Pushing that path from a screen living *outside* `StatefulShellRoute` (Favorites, and potentially other future entry points) caused a `go_router` navigator key collision (`'!keyReservation.contains(key)'` assertion failure), since the shell's branch navigator and the root navigator both attempted to reserve the same route key.
+
+This was resolved by adding a second, standalone route (`/meal-detail/:id`) pointing at the same `MealDetailScreen` widget. Browsing from the Meals tab continues to use the original nested path; any entry point outside the shell (Favorites today, potentially deep links or search later) uses the standalone path instead.
+
+---
+
+# ⚙️ Settings — ✅ Complete
+
+The Settings screen exposes the light/dark/system theme preference that already existed at the `ThemeData` level, and relocates sign-out into a dedicated account section.
+
+Implemented:
+
+* ✅ `ThemeModeController` (Riverpod) — owns the active `ThemeMode`
+* ✅ `ThemePreferencesService` — persists the selected mode via `SharedPreferences`
+* ✅ Theme preference restored on app launch
+* ✅ Light / Dark / System segmented toggle, applied instantly app-wide
+* ✅ Settings screen (Appearance section + Account section)
+* ✅ Edit Profile link (routes to existing Profile screen)
+* ✅ Sign Out with confirmation dialog
+* ✅ Sign Out reuses the existing `AuthController.signOut()` — no new sign-out logic, only a new UI location
+* ✅ Sign Out routes back to Login afterward
+* ✅ Settings entry point (Profile screen AppBar action)
+
+```text
+Flutter
+   ↓
+SettingsScreen
+   ↓
+┌─────────────────────┬─────────────────────┐
+↓                      ↓
+ThemeModeController    AuthController.signOut()
+   ↓                      ↓
+SharedPreferences      Supabase Auth
+   ↓                      ↓
+App-wide theme         Login
+```
+
+No new backend endpoints were required — this feature is UI-only, per the original scope (theming already existed at the `ThemeData` level; sign-out already existed in Authentication).
+
+---
+
 # 🧭 Navigation — ✅ Complete
 
 The application uses a bottom navigation shell containing:
@@ -504,12 +602,18 @@ Recommendations
 Pantry
 ```
 
-Profile remains accessible separately.
+Profile and Settings remain accessible separately, off the shell.
 
-Meal details use nested routing:
+Meal details use nested routing (within the Meals tab):
 
 ```text
 /meals/:id
+```
+
+A standalone meal-detail route exists for entry points outside the shell (Favorites, etc.):
+
+```text
+/meal-detail/:id
 ```
 
 Meal planner add/edit uses nested routing:
@@ -518,10 +622,12 @@ Meal planner add/edit uses nested routing:
 /meal-planner/add
 ```
 
-Grocery List is a standalone pushed route, launched from Meal Planner or Home rather than a bottom-nav tab:
+Grocery List, Favorites, and Settings are standalone pushed routes, launched from Meal Planner, Home, or Profile rather than bottom-nav tabs:
 
 ```text
 /grocery-list
+/favorites
+/settings
 ```
 
 The navigation structure allows users to move through the primary application flow:
@@ -536,8 +642,10 @@ Home
  ┌─────────┬───────────┬─────────┬────────────────┐
  ↓         ↓           ↓         ↓                ↓
 Meals    Planner     Pantry   Recommendations   Profile
- ↓         ↓                    ↓
-Details  Grocery List      Meal Details
+ ↓         ↓                    ↓                  ↓
+Details  Grocery List      Meal Details         Settings
+
+Home ──→ Favorites ──→ Meal Details (standalone route)
 ```
 
 ---
@@ -577,6 +685,7 @@ Protected backend features include:
 * Meal Planner
 * Recommendations
 * Grocery List
+* Favorites
 
 Note: `GET /meals/units` and `GET /meals/ingredients/suggestions` are intentionally **unauthenticated**, since they expose no user-specific data — just the set of units/ingredients used across the shared meal database.
 
@@ -651,6 +760,8 @@ FastAPI
 
 This keeps UI code independent from the underlying API implementation.
 
+Settings is a partial exception to this layering — it has no `data/` or `domain/` layer of its own, since it doesn't call any dedicated backend endpoint. It composes `ThemeModeController` (in `core/`, since theme is an app-wide concern rather than feature-specific) with the existing `AuthController`.
+
 ---
 
 # 📁 Project Structure
@@ -658,6 +769,7 @@ This keeps UI code independent from the underlying API implementation.
 ```text
 lib/
 ├── app/
+│   ├── app.dart
 │   ├── colors.dart
 │   ├── routes.dart
 │   ├── router.dart
@@ -668,9 +780,13 @@ lib/
 │   ├── errors/
 │   ├── extensions/
 │   ├── networks/
+│   ├── providers/
+│   │   └── theme_mode_provider.dart
 │   ├── services/
+│   │   └── theme_preferences_service.dart
 │   ├── utils/
 │   └── widgets/
+│       └── confirm_dialog.dart
 │
 ├── features/
 │   │
@@ -758,19 +874,47 @@ lib/
 │   │       ├── screens/
 │   │       └── widgets/
 │   │
-│   └── grocery_list/
-│       ├── data/
-│       │   ├── datasources/
-│       │   ├── models/
-│       │   ├── repositories/
-│       │   ├── grocery_list_dependencies.dart
-│       │   └── grocery_checklist_storage.dart
-│       ├── domain/
-│       │   └── repositories/
+│   ├── grocery_list/
+│   │   ├── data/
+│   │   │   ├── datasources/
+│   │   │   ├── models/
+│   │   │   ├── repositories/
+│   │   │   ├── grocery_list_dependencies.dart
+│   │   │   └── grocery_checklist_storage.dart
+│   │   ├── domain/
+│   │   │   └── repositories/
+│   │   └── presentation/
+│   │       ├── providers/
+│   │       ├── screens/
+│   │       └── widgets/
+│   │
+│   ├── favorites/
+│   │   ├── data/
+│   │   │   ├── datasources/
+│   │   │   │   └── favorites_remote_datasource.dart
+│   │   │   ├── models/
+│   │   │   │   └── favorite_model.dart
+│   │   │   ├── repositories/
+│   │   │   │   └── favorites_repository_impl.dart
+│   │   │   └── favorites_dependencies.dart
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   │   └── favorite.dart
+│   │   │   └── repositories/
+│   │   │       └── favorites_repository.dart
+│   │   └── presentation/
+│   │       ├── providers/
+│   │       │   └── favorites_provider.dart
+│   │       ├── screens/
+│   │       │   └── favorites_screen.dart
+│   │       └── widgets/
+│   │           ├── favorite_button.dart
+│   │           └── favorite_meal_card.dart
+│   │
+│   └── settings/
 │       └── presentation/
-│           ├── providers/
-│           ├── screens/
-│           └── widgets/
+│           └── screens/
+│               └── settings_screen.dart
 │
 └── shared/
     ├── extensions/
@@ -787,6 +931,8 @@ The application supports:
 
 * ✅ Light theme
 * ✅ Dark theme
+* ✅ System theme (follows device setting)
+* ✅ User-selectable theme preference, persisted across restarts
 * ✅ Poppins typography
 * ✅ Food-inspired visual identity
 * ✅ Burnt-orange primary accents
@@ -796,7 +942,8 @@ The application supports:
 * ✅ Loading states
 * ✅ Error states
 * ✅ Empty states
-* ✅ Snackbar feedback
+* ✅ Snackbar feedback (with FAB-aware bottom margin on screens with a floating action button)
+* ✅ Shared confirmation dialog widget for destructive actions
 
 ### Brand Colors
 
@@ -808,7 +955,7 @@ The primary visual identity uses warm food-inspired colors:
 * Olive Green
 * Green
 
-The authentication, profile, pantry, meals, meal planner, recommendations, grocery list, and home screens have been styled to maintain a consistent visual language.
+The authentication, profile, pantry, meals, meal planner, recommendations, grocery list, favorites, settings, and home screens have been styled to maintain a consistent visual language.
 
 ---
 
@@ -833,7 +980,9 @@ FastAPI
 │
 ├── Recommendations
 │
-└── Grocery List
+├── Grocery List
+│
+└── Favorites
 ```
 
 The general API flow is:
@@ -866,9 +1015,11 @@ FastAPI
 Supabase Storage
 ```
 
+Settings does not call any dedicated backend endpoint — the theme preference lives entirely client-side (`SharedPreferences`), and sign-out reuses the existing Supabase Auth flow already used by Authentication.
+
 ---
 
-# 📊 Week 4 Application Flow
+# 📊 Week 6 Application Flow
 
 ```text
 Login
@@ -877,19 +1028,25 @@ Profile Check
   ↓
 Home
   ↓
-┌─────────────────────────────────────────────┐
-│               │              │               │
-↓               ↓              ↓               ↓
-Meals        Planner        Pantry     Recommendations
-│               │              │
-↓               ↓              ↓
+┌───────────────┬────────────┬─────────┬────────────────┐
+│               │            │         │                │
+↓               ↓            ↓         ↓                ↓
+Meals        Planner       Pantry  Recommendations   Favorites
+│               │            │
+↓               ↓            ↓
 Meal Details  Add/Edit    Available Ingredients
-              Entry              │
-                 ↓                ↓
-            Grocery List   Recommendations
-                                   │
-                                   ↓
-                            Meal Details
+   ↑           Entry              │
+   │              ↓                ↓
+   │         Grocery List   Recommendations
+   │                                │
+   └────────────────────────────────┘
+                                     ↓
+                              Meal Details
+                                     ↑
+                              (Favorites tap-through,
+                               standalone route)
+
+Profile ──→ Settings ──→ Sign Out ──→ Login
 ```
 
 Recommendations are personalized using:
@@ -916,6 +1073,16 @@ Pantry
 Required − Available
       ↓
 Grocery List
+```
+
+Favorites is independent of the planning pipeline — a meal can be favorited without ever being scheduled:
+
+```text
+Meal Card / Meal Details
+      ↓
+Favorite Toggle
+      ↓
+Favorites Screen
 ```
 
 ---
@@ -955,11 +1122,20 @@ Implemented and tested:
 * ✅ Grocery list checklist isolation across different weeks
 * ✅ Dialog scroll/overflow fix (unit chip list in AddPantryItemDialog)
 * ✅ Home empty-recommendations layout overflow fix
+* ✅ Favorites: add idempotency (favoriting an already-favorited meal doesn't error)
+* ✅ Favorites: remove idempotency (un-favoriting an already-removed meal doesn't error)
+* ✅ Favorites: optimistic add/remove with rollback on API failure
+* ✅ Favorites: state consistency across meal cards, meal detail, and the Favorites screen
+* ✅ Favorites: navigation-key collision fix (standalone `/meal-detail/:id` route)
+* ✅ Settings: theme toggle applies instantly app-wide
+* ✅ Settings: theme preference persists across app restart
+* ✅ Settings: sign out clears session and routes to Login
 
 ### Not yet verified
 
 * 🔲 Ingredient-unit auto-detection for the ambiguous case (an ingredient used with 2+ different units across meals) — not yet exercised against real seed data
 * 🔲 Grocery list correctness against a fully populated week (multiple meals/slots, overlapping ingredients)
+* 🔲 Favorites behavior when the underlying meal is deleted from the catalog (cascade is implemented backend-side but not exercised end-to-end from the app)
 
 ---
 
@@ -987,6 +1163,8 @@ SUPABASE_SERVICE_ROLE_KEY
 ```
 
 The service-role key is **server-side only** and must never be included in the Flutter application.
+
+The `shared_preferences` package is required for both the theme-preference (Settings) and grocery-checklist persistence features. Confirm it is listed in `pubspec.yaml`.
 
 ---
 
@@ -1171,48 +1349,30 @@ The Supabase service-role key belongs exclusively on the FastAPI backend.
 * [x] Multi-unit ingredients narrow the picker to only their known units
 * [x] Fallback to full unit list for unmatched/new ingredients
 
+## Phase 9 — Favorites & Settings ✅
+
+* [x] `Favorite` backend model with unique `(profile_id, meal_id)` constraint
+* [x] Cascading deletion on both `profile_id` and `meal_id`
+* [x] Idempotent add/remove service logic
+* [x] Router (`/favorites`) — add, list, remove
+* [x] Alembic migration for `favorites`
+* [x] Flutter entity/model, datasource, repository
+* [x] Riverpod `FavoritesController` with optimistic add/remove
+* [x] `FavoriteButton` widget (meal cards + meal detail)
+* [x] Favorites screen with empty state
+* [x] Standalone meal-detail route (shell-navigation key-collision fix)
+* [x] `ThemeModeController` + `SharedPreferences`-backed persistence
+* [x] Light/Dark/System theme toggle, applied instantly
+* [x] Settings screen (Appearance + Account sections)
+* [x] Edit Profile link
+* [x] Sign Out with confirmation dialog, relocated into Settings
+* [x] Settings and Favorites entry points wired into Profile/Home
+
 ---
 
 # 🚧 Future / Not Yet Implemented Features
 
-The following features are **not yet implemented** and are the primary focus for the remainder of Week 4.
-
-### ⚙️ Settings — 🔲 Not Yet Implemented
-
-Planned functionality includes:
-
-* [ ] Settings screen
-* [ ] Theme preferences
-* [ ] Dark mode toggle
-* [ ] Light mode toggle
-* [ ] Account-related settings
-* [ ] Sign out
-* [ ] Additional application preferences
-
-> **Note:** The application already supports light and dark themes at the theme level, but a user-facing Settings screen for controlling these preferences has not yet been implemented.
-
-### 🔐 Sign Out in Settings — 🔲 Not Yet Implemented
-
-Supabase sign-out functionality already exists as part of Authentication.
-
-However, the final UI location for sign-out is planned to be:
-
-```text
-Settings
-   ↓
-Sign Out
-   ↓
-Supabase Auth
-   ↓
-Login
-```
-
-### ⭐ Favorites / Saved Meals — 🔲 Not Yet Implemented
-
-* [ ] Save meals
-* [ ] Remove saved meals
-* [ ] Favorites screen
-* [ ] Persistent saved meals
+The following features are **not yet implemented**.
 
 ### 🔎 Advanced Meal Search & Filtering — 🔲 Not Yet Implemented
 
@@ -1268,20 +1428,29 @@ Potential future functionality:
 * [ ] Meal image management
 * [ ] Recommendation monitoring
 
+### 🔄 Grocery Checklist Cloud Sync — 🔲 Not Yet Implemented
+
+* [ ] Persist checklist state server-side instead of `SharedPreferences`
+* [ ] Sync checklist across multiple devices
+
+### 📏 Multi-Unit Ingredient Auto-Detection — 🔲 Not Yet Verified
+
+* [ ] Exercise the ambiguous case (an ingredient used with 2+ different units across meals) against real seed data
+
 ---
 
 # 📌 Project Status
 
-> **Current milestone: Week 4 In Progress 🚧**
+> **Current milestone: Week 6 Complete 🎉**
 
 TipidMeal now has a working core application flow consisting of:
 
 ```text
 Authentication
       ↓
-Profile
+Profile ──→ Settings
       ↓
-Home
+Home ──→ Favorites
       ↓
 Meals
       ↓
@@ -1296,25 +1465,28 @@ Deterministic Recommendations
 Meal Details
 ```
 
-Completed so far in Week 4:
+Completed in Week 6:
+
+* ✅ Favorites (backend + Flutter, full add/list/remove loop)
+* ✅ Idempotent favorite add/remove
+* ✅ Optimistic UI for favorite toggling, with rollback
+* ✅ Favorite button on meal cards and meal detail screen
+* ✅ Dedicated Favorites screen
+* ✅ Standalone meal-detail route (fixed `go_router` navigator key collision when navigating from outside the bottom-nav shell)
+* ✅ Settings screen (Appearance + Account)
+* ✅ Light/Dark/System theme toggle, persisted via `SharedPreferences`
+* ✅ Sign Out relocated into Settings, with confirmation dialog
+* ✅ Settings and Favorites entry points wired into existing screens
+
+Completed in earlier weeks (carried forward):
 
 * ✅ Meal Planner (backend + Flutter, full CRUD)
-* ✅ Weekly calendar UI with day-tab navigation
-* ✅ Meal-slot grouping (breakfast/lunch/dinner)
-* ✅ Optimistic delete with rollback
 * ✅ Grocery List (backend + Flutter, derived from Meal Planner + Pantry)
-* ✅ Persistent grocery checklist state, with stale-week cleanup
-* ✅ Ingredient/unit matching fix (backend unit endpoint + constrained pantry unit picker)
-* ✅ Home Quick Actions (Meal Planner, Grocery List)
-* ✅ Consistent snackbar/dialog UX across Pantry, Meal Planner, and Grocery List
-* ✅ UI overflow fixes (pantry dialog unit chips, Home empty-recommendations state)
+* ✅ Ingredient/unit matching fix
+* ✅ Consistent snackbar/dialog UX across all CRUD-style features
 
-### Current Limitations / Remaining Week 4 Work
+### Current Limitations / Remaining Work
 
-* 🔲 Settings screen
-* 🔲 User-facing dark/light mode preference control
-* 🔲 Sign out inside Settings
-* 🔲 Favorites / saved meals
 * 🔲 Food categories
 * 🔲 Advanced meal filtering
 * 🔲 Full nutrition information
@@ -1323,8 +1495,9 @@ Completed so far in Week 4:
 * 🔲 Admin functionality
 * 🔲 Multi-unit ingredient auto-detection — not yet exercised against real ambiguous data
 * 🔲 Grocery checklist cloud sync (currently local-only via `SharedPreferences`)
+* 🔲 Favorites behavior on meal deletion — not yet exercised end-to-end from the app
 
-These remain the primary targets for the rest of Week 4 and subsequent phases.
+These remain the primary targets for subsequent phases.
 
 ---
 

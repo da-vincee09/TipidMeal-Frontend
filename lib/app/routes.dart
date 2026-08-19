@@ -11,4 +11,7 @@ abstract final class AppRoutes {
   static const recommendations = '/recommendations';
   static const mealPlanner = '/meal-planner';
   static const groceryList =  '/grocery-list';
+  static const favorites = '/favorites';
+  static String mealDetail(String id) => '/meal-detail/$id';
+  static const settings = '/settings';
 }
