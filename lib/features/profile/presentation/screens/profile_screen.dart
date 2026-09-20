@@ -9,6 +9,7 @@ import 'package:meal_recommendation_app/features/profile/data/models/profile_upd
 import 'package:meal_recommendation_app/features/profile/presentation/providers/profile_provider.dart';
 import 'package:meal_recommendation_app/features/profile/presentation/widgets/profile_form.dart';
 import 'package:meal_recommendation_app/core/utils/currency_utils.dart';
+import 'package:meal_recommendation_app/core/constants/profile_options.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -28,6 +29,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       sex: data.sex,
       dailyBudget: data.dailyBudget,
       cookingSkillLevel: data.cookingSkillLevel,
+      physicalActivityLevel: data.physicalActivityLevel,
       foodAllergies: data.foodAllergies,
       dislikedIngredients: data.dislikedIngredients,
     );
@@ -277,7 +279,8 @@ class _ProfileView extends StatelessWidget {
           _row(context, 'Date of Birth', _formatDate(profile.dateOfBirth)),
           _row(context, 'Sex', profile.sex),
           _row(context, 'Daily Budget', formatPeso(profile.dailyBudget)),
-          _row(context, 'Cooking Skill Level', profile.cookingSkillLevel),
+          _row(context, 'Cooking Skill Level', ProfileOptions.skillLabel(profile.cookingSkillLevel)),
+          _row(context, 'Physical Activity Level', ProfileOptions.activityLabel(profile.physicalActivityLevel)),
           _chipList(
             context,
             'Food Allergies',

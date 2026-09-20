@@ -4,7 +4,7 @@ import 'package:meal_recommendation_app/core/networks/api_constants.dart';
 import 'package:meal_recommendation_app/features/recommendations/data/models/recommendation_model.dart';
 
 abstract class RecommendationsRemoteDatasource {
-  Future<List<RecommendationModel>> getRecommendations();
+  Future<List<RecommendationModel>> getRecommendations({String sortBy = 'score'});
 }
 
 class RecommendationsRemoteDatasourceImpl
@@ -15,9 +15,12 @@ class RecommendationsRemoteDatasourceImpl
   RecommendationsRemoteDatasourceImpl({required Dio dio}) : _dio = dio;
 
   @override
-  Future<List<RecommendationModel>> getRecommendations() async {
+  Future<List<RecommendationModel>> getRecommendations({String sortBy = 'score'}) async {
     try {
-      final response = await _dio.get(ApiConstants.recommendations);
+      final response = await _dio.get(
+        ApiConstants.recommendations,
+        queryParameters: {'sort_by': sortBy},
+      );
       final recsJson = response.data['recommendations'] as List<dynamic>;
       return recsJson
           .map((e) => RecommendationModel.fromJson(e as Map<String, dynamic>))

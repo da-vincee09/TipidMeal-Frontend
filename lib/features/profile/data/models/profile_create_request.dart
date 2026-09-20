@@ -5,6 +5,7 @@ class ProfileCreateRequest {
   final String sex;
   final double dailyBudget;
   final String cookingSkillLevel;
+  final String physicalActivityLevel;
   final List<String> foodAllergies;
   final List<String> dislikedIngredients;
   final String? profileImageUrl;
@@ -16,6 +17,7 @@ class ProfileCreateRequest {
     required this.sex,
     required this.dailyBudget,
     required this.cookingSkillLevel,
+    required this.physicalActivityLevel,
     this.foodAllergies = const [],
     this.dislikedIngredients = const [],
     this.profileImageUrl,
@@ -32,6 +34,7 @@ class ProfileCreateRequest {
       'sex': sex,
       'daily_budget': dailyBudget,
       'cooking_skill_level': cookingSkillLevel,
+      'physical_activity_level': physicalActivityLevel,
       'food_allergies': foodAllergies,
       'disliked_ingredients': dislikedIngredients,
       if (profileImageUrl != null) 'profile_image_url': profileImageUrl,
@@ -45,6 +48,7 @@ class ProfileCreateRequest {
     String? sex,
     double? dailyBudget,
     String? cookingSkillLevel,
+    String? physicalActivityLevel,
     List<String>? foodAllergies,
     List<String>? dislikedIngredients,
     String? profileImageUrl,
@@ -56,6 +60,7 @@ class ProfileCreateRequest {
       sex: sex ?? this.sex,
       dailyBudget: dailyBudget ?? this.dailyBudget,
       cookingSkillLevel: cookingSkillLevel ?? this.cookingSkillLevel,
+      physicalActivityLevel: physicalActivityLevel ?? this.physicalActivityLevel,
       foodAllergies: foodAllergies ?? this.foodAllergies,
       dislikedIngredients: dislikedIngredients ?? this.dislikedIngredients,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,

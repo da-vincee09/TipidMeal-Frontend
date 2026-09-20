@@ -14,6 +14,7 @@ class ProfileFormData {
   final String sex;
   final double dailyBudget;
   final String cookingSkillLevel;
+  final String physicalActivityLevel;
   final List<String> foodAllergies;
   final List<String> dislikedIngredients;
   final File? profileImageFile;
@@ -25,6 +26,7 @@ class ProfileFormData {
     required this.sex,
     required this.dailyBudget,
     required this.cookingSkillLevel,
+    required this.physicalActivityLevel,
     required this.foodAllergies,
     required this.dislikedIngredients,
     this.profileImageFile,
@@ -57,6 +59,7 @@ class _ProfileFormState extends State<ProfileForm> {
   DateTime? _dateOfBirth;
   String? _sex;
   String? _cookingSkillLevel;
+  String? _physicalActivityLevel;
   late Set<String> _selectedAllergies;
   late Set<String> _selectedDislikedIngredients;
 
@@ -88,7 +91,8 @@ class _ProfileFormState extends State<ProfileForm> {
 
     _dateOfBirth = p?.dateOfBirth;
     _sex = p?.sex;
-    _cookingSkillLevel = p?.cookingSkillLevel;
+    _cookingSkillLevel = p?.cookingSkillLevel.toLowerCase();
+    _physicalActivityLevel = p?.physicalActivityLevel;
     _selectedAllergies = p?.foodAllergies.map((e) => e.allergy).toSet() ?? {};
     _selectedDislikedIngredients =
         p?.dislikedIngredients.map((e) => e.ingredient).toSet() ?? {};
@@ -168,6 +172,7 @@ class _ProfileFormState extends State<ProfileForm> {
     required List<String> options,
     required String? selected,
     required ValueChanged<String> onSelected,
+    String Function(String)? labelBuilder,
   }) {
     return Wrap(
       spacing: 8,
@@ -175,7 +180,7 @@ class _ProfileFormState extends State<ProfileForm> {
       children: options.map((option) {
         final isSelected = option == selected;
         return ChoiceChip(
-          label: Text(option),
+          label: Text(labelBuilder?.call(option) ?? option),
           selected: isSelected,
           onSelected: (_) => onSelected(option),
           selectedColor: AppColors.burntOrange,
@@ -272,6 +277,14 @@ class _ProfileFormState extends State<ProfileForm> {
       return;
     }
 
+    if (_physicalActivityLevel == null) {
+      context.showSnackBar(
+        'Please select your physical activity level.',
+        isError: true,
+      );
+      return;
+    }
+
     widget.onSubmit(
       ProfileFormData(
         firstName: firstName,
@@ -280,6 +293,7 @@ class _ProfileFormState extends State<ProfileForm> {
         sex: _sex!,
         dailyBudget: dailyBudget,
         cookingSkillLevel: _cookingSkillLevel!,
+        physicalActivityLevel: _physicalActivityLevel!,
         foodAllergies: _selectedAllergies.toList(),
         dislikedIngredients: _selectedDislikedIngredients.toList(),
         profileImageFile: _pickedImage,
@@ -400,10 +414,36 @@ class _ProfileFormState extends State<ProfileForm> {
         _choiceChipRow(
           options: ProfileOptions.cookingSkillLevels,
           selected: _cookingSkillLevel,
+          labelBuilder: ProfileOptions.skillLabel,
           onSelected: (value) => setState(() => _cookingSkillLevel = value),
         ),
 
         const SizedBox(height: 16),
+
+        Text('Physical Activity Level', style: theme.textTheme.labelLarge),
+        const SizedBox(height: 8,),
+        _choiceChipRow(
+          options: ProfileOptions.physicalActivityLevels, 
+          selected: _physicalActivityLevel,
+          labelBuilder: ProfileOptions.activityLabel, 
+          onSelected: (value) => 
+            setState(() => _physicalActivityLevel = value),
+        ),
+        if (ProfileOptions.activityHint(_physicalActivityLevel) != null)
+          Padding(
+            padding:  const EdgeInsets.only(top: 8),
+            child: Text(
+              ProfileOptions.activityHint(_physicalActivityLevel)!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: isDark
+                  ? AppColors.darkSecondaryText
+                  : AppColors.lightSecondaryText,
+              ),
+            ),
+          ),
+
+
+        const SizedBox(height: 8),
 
         Text('Food Allergies', style: theme.textTheme.labelLarge),
         const SizedBox(height: 8),

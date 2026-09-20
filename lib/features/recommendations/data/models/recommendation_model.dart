@@ -70,9 +70,10 @@ class IngredientAdaptationModel {
 }
 
 class MealAdaptationModel {
-  final String decision; // adapt | fallback (fallback never actually
-  // reaches the client — service.py filters those out server-side —
-  // but we handle it defensively anyway)
+  final String decision; // adapt | fallback — both now reach the client
+  // as of Week 7. `fallback` meals are no longer excluded server-side;
+  // they're returned but tiered after `adapt` meals in the default
+  // sort_by=score ordering (see RecommendationController._sorted()).
   final List<IngredientAdaptationModel> ingredients;
 
   const MealAdaptationModel({

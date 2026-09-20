@@ -24,6 +24,7 @@ class ProfileSetupScreen extends ConsumerWidget {
       sex: data.sex,
       dailyBudget: data.dailyBudget,
       cookingSkillLevel: data.cookingSkillLevel,
+      physicalActivityLevel: data.physicalActivityLevel,
       foodAllergies: data.foodAllergies,
       dislikedIngredients: data.dislikedIngredients,
     );

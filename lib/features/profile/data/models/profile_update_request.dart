@@ -5,6 +5,7 @@ class ProfileUpdateRequest {
   final String? sex;
   final double? dailyBudget;
   final String? cookingSkillLevel;
+  final String? physicalActivityLevel;
   final List<String>? foodAllergies;
   final List<String>? dislikedIngredients;
   final String? profileImageUrl;
@@ -16,6 +17,7 @@ class ProfileUpdateRequest {
     this.sex,
     this.dailyBudget,
     this.cookingSkillLevel,
+    this.physicalActivityLevel,
     this.foodAllergies,
     this.dislikedIngredients,
     this.profileImageUrl,
@@ -33,6 +35,8 @@ class ProfileUpdateRequest {
       if (dailyBudget != null) 'daily_budget': dailyBudget,
       if (cookingSkillLevel != null)
         'cooking_skill_level': cookingSkillLevel,
+      if (physicalActivityLevel != null)
+        'physical_activity_level': physicalActivityLevel,
       if (foodAllergies != null) 'food_allergies': foodAllergies,
       if (dislikedIngredients != null)
         'disliked_ingredients': dislikedIngredients,
@@ -47,6 +51,7 @@ class ProfileUpdateRequest {
     String? sex,
     double? dailyBudget,
     String? cookingSkillLevel,
+    String? physicalActivityLevel,
     List<String>? foodAllergies,
     List<String>? dislikedIngredients,
     String? profileImageUrl,
@@ -58,6 +63,7 @@ class ProfileUpdateRequest {
       sex: sex ?? this.sex,
       dailyBudget: dailyBudget ?? this.dailyBudget,
       cookingSkillLevel: cookingSkillLevel ?? this.cookingSkillLevel,
+      physicalActivityLevel: physicalActivityLevel ?? this.physicalActivityLevel,
       foodAllergies: foodAllergies ?? this.foodAllergies,
       dislikedIngredients: dislikedIngredients ?? this.dislikedIngredients,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,

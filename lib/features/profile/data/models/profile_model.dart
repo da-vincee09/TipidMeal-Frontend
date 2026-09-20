@@ -11,6 +11,7 @@ class ProfileModel {
   final String sex;
   final double dailyBudget;
   final String cookingSkillLevel;
+  final String physicalActivityLevel;
   final List<FoodAllergyModel> foodAllergies;
   final List<DislikedIngredientModel> dislikedIngredients;
   final DateTime createdAt;
@@ -26,6 +27,7 @@ class ProfileModel {
     required this.sex,
     required this.dailyBudget,
     required this.cookingSkillLevel,
+    required this.physicalActivityLevel,
     required this.foodAllergies,
     required this.dislikedIngredients,
     required this.createdAt,
@@ -49,6 +51,7 @@ class ProfileModel {
       // the backend serializes it, so we parse defensively.
       dailyBudget: (json['daily_budget'] as num).toDouble(),
       cookingSkillLevel: json['cooking_skill_level'] as String,
+      physicalActivityLevel: json['physical_activity_level'] as String,
       foodAllergies: (json['food_allergies'] as List<dynamic>? ?? [])
           .map((e) => FoodAllergyModel.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -78,6 +81,7 @@ class ProfileModel {
       'sex': sex,
       'daily_budget': dailyBudget,
       'cooking_skill_level': cookingSkillLevel,
+      'physical_activity_level': physicalActivityLevel,
       'food_allergies': foodAllergies.map((e) => e.toJson()).toList(),
       'disliked_ingredients':
           dislikedIngredients.map((e) => e.toJson()).toList(),
@@ -96,6 +100,7 @@ class ProfileModel {
     String? sex,
     double? dailyBudget,
     String? cookingSkillLevel,
+    String? physicalActivityLevel,
     List<FoodAllergyModel>? foodAllergies,
     List<DislikedIngredientModel>? dislikedIngredients,
     DateTime? createdAt,
@@ -111,6 +116,7 @@ class ProfileModel {
       sex: sex ?? this.sex,
       dailyBudget: dailyBudget ?? this.dailyBudget,
       cookingSkillLevel: cookingSkillLevel ?? this.cookingSkillLevel,
+      physicalActivityLevel: physicalActivityLevel ?? this.physicalActivityLevel,
       foodAllergies: foodAllergies ?? this.foodAllergies,
       dislikedIngredients: dislikedIngredients ?? this.dislikedIngredients,
       createdAt: createdAt ?? this.createdAt,
@@ -139,6 +145,7 @@ class ProfileModel {
         other.sex == sex &&
         other.dailyBudget == dailyBudget &&
         other.cookingSkillLevel == cookingSkillLevel &&
+        other.physicalActivityLevel == physicalActivityLevel &&
         _listEquals(other.foodAllergies, foodAllergies) &&
         _listEquals(other.dislikedIngredients, dislikedIngredients) &&
         other.createdAt == createdAt &&
@@ -156,6 +163,7 @@ class ProfileModel {
         sex,
         dailyBudget,
         cookingSkillLevel,
+        physicalActivityLevel,
         Object.hashAll(foodAllergies),
         Object.hashAll(dislikedIngredients),
         createdAt,

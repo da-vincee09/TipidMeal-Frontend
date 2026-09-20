@@ -9,7 +9,7 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
   RecommendationRepositoryImpl({required this.datasource});
 
   @override
-  Future<List<RecommendationModel>> getRecommendations() {
-    return datasource.getRecommendations();
+  Future<List<RecommendationModel>> getRecommendations({String sortBy = 'score'}) {
+    return datasource.getRecommendations(sortBy: sortBy);
   }
 }
