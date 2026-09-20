@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_recommendation_app/core/extensions/context_extension.dart';
+import 'package:meal_recommendation_app/core/utils/currency_utils.dart';
 import 'package:meal_recommendation_app/core/widgets/confirm_dialog.dart';
 import 'package:meal_recommendation_app/features/meal_planner/data/models/meal_plan_entry_model.dart';
 import 'package:meal_recommendation_app/features/meal_planner/data/models/meal_plan_entry_request.dart';
 import 'package:meal_recommendation_app/features/meal_planner/presentation/providers/meal_planner_provider.dart';
 import 'package:meal_recommendation_app/features/meals/data/models/meal_model.dart';
 import 'package:meal_recommendation_app/features/meals/presentation/providers/meal_provider.dart';
+import 'package:meal_recommendation_app/core/constants/meal_planner_constants.dart';
 
 class AddEditMealPlanEntryScreen extends ConsumerStatefulWidget {
   final DateTime? initialDate;
@@ -55,14 +57,30 @@ class _AddEditMealPlanEntryScreenState
   }
 
   Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final todayOnly = DateTime(now.year, now.month, now.day);
+
+    final initial = _selectedDate.isBefore(todayOnly) ? todayOnly : _selectedDate;
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      initialDate: initial,
+      firstDate: todayOnly,
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (picked != null) {
-      setState(() => _selectedDate = picked);
+    if(picked != null) {
+      setState(() {
+        _selectedDate = picked;
+
+        if(_selectedSlot != null &&
+          !isDateBeforeToday(picked) &&
+          picked.year == now.year &&
+          picked.month == now.month &&
+          picked.day == now.day &&
+          isSlotPastToday(_selectedSlot!)) {
+            _selectedSlot = null;
+          }
+      });
     }
   }
 
@@ -97,7 +115,7 @@ class _AddEditMealPlanEntryScreenState
 
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
-      if (mounted) context.showErrorSnackBar('Failed to save: $e');
+      if (mounted) context.showErrorSnackBar('$e');
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -178,13 +196,24 @@ class _AddEditMealPlanEntryScreenState
                 Wrap(
                   spacing: 8,
                   children: _slots.map((slot) {
+                    final now = DateTime.now();
+                    final isToday = _selectedDate.year == now.year && 
+                      _selectedDate.month == now.month && 
+                      _selectedDate.day == now.day;
+                    final isPastSlot = isToday && isSlotPastToday(slot);
+
                     final isSelected = _selectedSlot == slot;
                     return ChoiceChip(
                       label: Text(_slotLabels[slot]!),
                       selected: isSelected,
-                      onSelected: (_) => setState(
-                        () => _selectedSlot = isSelected ? null : slot,
-                      ),
+                      onSelected: isPastSlot
+                        ? null
+                        : (_) => setState(
+                            () => _selectedSlot = isSelected ? null : slot,
+                          ),
+                      labelStyle: isPastSlot
+                        ? TextStyle(color: theme.disabledColor)
+                        : null,
                     );
                   }).toList(),
                 ),
@@ -288,7 +317,7 @@ class _MealPickerTile extends StatelessWidget {
               : const Icon(Icons.restaurant),
         ),
         title: Text(meal.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: Text('₱${meal.displayCost}'),
+        subtitle: Text(formatPeso(meal.estimatedCost)),
         trailing: isSelected
             ? Icon(Icons.check_circle, color: theme.colorScheme.primary)
             : null,

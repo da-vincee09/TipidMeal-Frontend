@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_recommendation_app/app/colors.dart';
+import 'package:meal_recommendation_app/core/utils/currency_utils.dart';
 import 'package:meal_recommendation_app/features/meals/presentation/providers/meal_provider.dart';
 import 'package:meal_recommendation_app/features/favorites/presentation/widgets/favorite_button.dart';
 
@@ -155,7 +156,7 @@ class MealDetailScreen extends ConsumerWidget {
                               ),
                             _InfoChip(
                               icon: Icons.payments_outlined,
-                              label: '₱${meal.displayCost}',
+                              label: formatPeso(meal.estimatedCost),
                             ),
                           ],
                         ),

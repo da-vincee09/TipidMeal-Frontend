@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:meal_recommendation_app/app/colors.dart';
+import 'package:meal_recommendation_app/core/utils/currency_utils.dart';
 import 'package:meal_recommendation_app/features/recommendations/data/models/recommendation_model.dart';
 
 class RecommendationCard extends StatelessWidget {
@@ -215,7 +216,7 @@ class RecommendationCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '₱${meal.displayCost}',
+                                  formatPeso(meal.estimatedCost),
                                   style: const TextStyle(
                                     color: AppColors.burntOrange,
                                     fontSize: 11.5,

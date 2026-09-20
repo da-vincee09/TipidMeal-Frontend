@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meal_recommendation_app/features/favorites/domain/entities/favorite.dart';
+import 'package:meal_recommendation_app/core/utils/currency_utils.dart';
 
 class FavoriteMealCard extends StatelessWidget {
   final Favorite favorite;
@@ -31,7 +32,7 @@ class FavoriteMealCard extends StatelessWidget {
               : _placeholder(theme),
         ),
         title: Text(meal.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: Text('₱${meal.estimatedCost.toStringAsFixed(0)}'),
+        subtitle: Text(formatPeso((meal.estimatedCost))),
         trailing: Icon(Icons.favorite, color: theme.colorScheme.error, size: 20),
       ),
     );

@@ -8,6 +8,7 @@ import 'package:meal_recommendation_app/app/routes.dart';
 import 'package:meal_recommendation_app/features/pantry/presentation/providers/pantry_provider.dart';
 import 'package:meal_recommendation_app/features/profile/presentation/providers/profile_provider.dart';
 import 'package:meal_recommendation_app/features/recommendations/presentation/providers/recommendation_provider.dart';
+import 'package:meal_recommendation_app/core/utils/currency_utils.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -102,7 +103,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       icon: Icons.payments_outlined,
                       label: 'Daily Budget',
                       value: profile != null
-                          ? '₱${profile.dailyBudget.toStringAsFixed(0)}'
+                          ? formatPeso(profile.dailyBudget)
                           : '—',
                     ),
                   ),

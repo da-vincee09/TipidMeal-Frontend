@@ -104,6 +104,11 @@ class MealPlannerRemoteDatasourceImpl implements MealPlannerRemoteDatasource {
     final statusCode = e.response?.statusCode;
 
     switch (statusCode) {
+      case 400:
+        final detail = e.response?.data?['detail'];
+        return BadRequestException(
+          detail is String ? detail: 'That request could not be completed.',
+        );
       case 401:
         return const UnauthorizedException();
       case 404:

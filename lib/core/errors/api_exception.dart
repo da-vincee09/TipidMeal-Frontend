@@ -42,3 +42,9 @@ class NetworkException extends ApiException {
     super.message = 'Could not reach the server. Check your connection.',
   ]);
 }
+
+class BadRequestException extends ApiException {
+  const BadRequestException([
+    super.message = 'That request could not be completed.',
+  ]);
+}

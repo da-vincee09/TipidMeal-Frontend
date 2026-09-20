@@ -83,7 +83,7 @@ class _ProfileFormState extends State<ProfileForm> {
     _firstNameController = TextEditingController(text: p?.firstName ?? '');
     _lastNameController = TextEditingController(text: p?.lastName ?? '');
     _dailyBudgetController = TextEditingController(
-      text: p != null ? p.dailyBudget.toStringAsFixed(0) : '',
+      text: p != null ? p.dailyBudget.toStringAsFixed(2) : '',
     );
 
     _dateOfBirth = p?.dateOfBirth;

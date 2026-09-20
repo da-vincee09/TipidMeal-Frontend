@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meal_recommendation_app/features/meal_planner/data/models/meal_plan_entry_model.dart';
+import 'package:meal_recommendation_app/core/utils/currency_utils.dart';
 
 class MealPlanEntryCard extends StatelessWidget {
   final MealPlanEntryModel entry;
@@ -42,7 +43,7 @@ class MealPlanEntryCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          '₱${entry.meal.estimatedCost.toStringAsFixed(0)}',
+          formatPeso(entry.meal.estimatedCost),
           style: theme.textTheme.bodySmall,
         ),
         trailing: onDelete != null

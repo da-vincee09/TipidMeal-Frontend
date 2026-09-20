@@ -189,14 +189,6 @@ class MealModel {
     };
   }
 
-  /// Trims trailing zeros for display (e.g. `500` instead of `500.0`).
-  String get displayCost {
-    if (estimatedCost == estimatedCost.roundToDouble()) {
-      return estimatedCost.toInt().toString();
-    }
-    return estimatedCost.toString();
-  }
-
   @override
   String toString() =>
       'MealModel(id: $id, name: $name, cookingTime: $cookingTime, '

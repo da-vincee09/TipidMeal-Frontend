@@ -8,6 +8,7 @@ import 'package:meal_recommendation_app/features/profile/data/models/profile_mod
 import 'package:meal_recommendation_app/features/profile/data/models/profile_update_request.dart';
 import 'package:meal_recommendation_app/features/profile/presentation/providers/profile_provider.dart';
 import 'package:meal_recommendation_app/features/profile/presentation/widgets/profile_form.dart';
+import 'package:meal_recommendation_app/core/utils/currency_utils.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -275,7 +276,7 @@ class _ProfileView extends StatelessWidget {
           _row(context, 'Full Name', profile.fullName),
           _row(context, 'Date of Birth', _formatDate(profile.dateOfBirth)),
           _row(context, 'Sex', profile.sex),
-          _row(context, 'Daily Budget', '₱${profile.dailyBudget.toStringAsFixed(0)}'),
+          _row(context, 'Daily Budget', formatPeso(profile.dailyBudget)),
           _row(context, 'Cooking Skill Level', profile.cookingSkillLevel),
           _chipList(
             context,

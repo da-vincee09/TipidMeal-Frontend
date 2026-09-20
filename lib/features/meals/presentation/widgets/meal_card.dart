@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_recommendation_app/app/colors.dart';
+import 'package:meal_recommendation_app/core/utils/currency_utils.dart';
 import 'package:meal_recommendation_app/features/favorites/presentation/widgets/favorite_button.dart';
 import 'package:meal_recommendation_app/features/meals/data/models/meal_model.dart';
 
@@ -109,7 +110,7 @@ class MealCard extends ConsumerWidget {
                       const SizedBox(height: 6),
 
                       Text(
-                        '₱${meal.displayCost}',
+                        formatPeso(meal.estimatedCost),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: AppColors.burntOrange,
                           fontWeight: FontWeight.w600,
