@@ -2,10 +2,12 @@ import 'package:dio/dio.dart';
 import 'package:meal_recommendation_app/core/errors/api_exception.dart';
 import 'package:meal_recommendation_app/core/networks/api_constants.dart';
 import 'package:meal_recommendation_app/features/meals/data/models/meal_model.dart';
+import 'package:meal_recommendation_app/features/nutrition/data/models/nutrition_adequacy_model.dart';
 
 abstract class MealsRemoteDatasource {
   Future<List<MealModel>> getMeals();
-  Future<MealModel> getMeal(String id);   
+  Future<MealModel> getMeal(String id);
+  Future<NutritionAdequacyModel> getNutritionAdequacy(String mealId);
 }
 
 class MealsRemoteDatasourceImpl implements MealsRemoteDatasource {
@@ -32,6 +34,22 @@ class MealsRemoteDatasourceImpl implements MealsRemoteDatasource {
     try {
       final response = await _dio.get(ApiConstants.mealDetail(id));
       return MealModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        throw MealNotFoundException();
+      }
+      throw _mapDioException(e);
+    }
+  }
+
+  @override
+  Future<NutritionAdequacyModel> getNutritionAdequacy(String mealId) async {
+    try {
+      final response =
+          await _dio.get(ApiConstants.mealNutritionAdequacy(mealId));
+      return NutritionAdequacyModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         throw MealNotFoundException();

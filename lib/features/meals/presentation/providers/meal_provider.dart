@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:meal_recommendation_app/features/meals/data/meal_dependencies.dart';
 import 'package:meal_recommendation_app/features/meals/data/models/meal_model.dart';
+import 'package:meal_recommendation_app/features/nutrition/data/models/nutrition_adequacy_model.dart';
 
 final mealControllerProvider =
     NotifierProvider<MealController, AsyncValue<List<MealModel>>>(
@@ -35,6 +36,19 @@ final mealDetailProvider =
     FutureProvider.family<MealModel, String>((ref, id) async {
   final repository = ref.read(mealRepositoryProvider);
   return repository.getMeal(id);
+});
+
+/// Fetches nutritional adequacy for a single meal, keyed by meal id.
+/// Deliberately separate from mealDetailProvider — nutrition depends on
+/// the *viewer's* profile (activity level, age, sex) as well as the
+/// meal, and can legitimately fail/be "unavailable" independently of
+/// whether the meal itself loaded fine. Keeping them as two providers
+/// lets the screen show the meal immediately while nutrition loads (or
+/// fails) on its own, rather than blocking the whole screen on it.
+final mealNutritionAdequacyProvider =
+    FutureProvider.family<NutritionAdequacyModel, String>((ref, mealId) async {
+  final repository = ref.read(mealRepositoryProvider);
+  return repository.getNutritionAdequacy(mealId);
 });
 
 /// Current search text, entered by the user on the Meals screen.

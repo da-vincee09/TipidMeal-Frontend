@@ -1,8 +1,8 @@
 # TipidMeal 🍽️
 
-A budget-friendly meal recommendation app designed to help users discover practical, affordable meals based on their budget, cooking skills, dietary restrictions, ingredient preferences, and available pantry ingredients.
+A budget-friendly meal recommendation app designed to help users discover practical, affordable meals based on their budget, cooking skills, dietary restrictions, ingredient preferences, and available pantry ingredients — and to see how nutritionally adequate each meal is for them.
 
-> **Project status:** 🚧 In Development — **Week 6 Complete, Week 7 Nearly Complete (Day 4 outstanding)**
+> **Project status:** 🚧 In Development — **Week 6 Complete, Week 7 Nearly Complete (Day 4 outstanding), Week 8 (Nutrition) Built — results pending final data verification**
 
 ---
 
@@ -108,7 +108,7 @@ Profile
 
 ### Physical Activity Level (Week 7)
 
-Groundwork for Week 8's Nutrition feature (PDRI-based caloric bracket calculation) — **not currently used anywhere in recommendation scoring or displayed on Home/recommendation cards.**
+Added in Week 7 as groundwork for the Nutrition feature. As of Week 8 the backend uses it, together with date of birth and sex, to determine each user's daily caloric requirement, which drives the nutrition results shown in Meal Detail and on recommendation cards. It is **not** used in recommendation scoring.
 
 * ✅ `ProfileOptions.physicalActivityLevels` — `sedentary`, `moderately_active`, `active`, matching the backend enum exactly
 * ✅ `ProfileOptions.activityLabel()` / `activityHint()` — human-readable display labels and short explanatory hints per level
@@ -253,6 +253,7 @@ Implemented:
 * ✅ Difficulty
 * ✅ Servings
 * ✅ Calories
+* ✅ Nutrition section on Meal Detail (Week 8 — see Nutrition below)
 * ✅ Cached network images
 * ✅ Graceful handling of meals without images
 * ✅ Seeded meal database
@@ -262,7 +263,7 @@ Current seeded meals (20 total, confirmed Week 7):
 
 * Sinigang na Baboy, Tortang Talong, Ginisang Ampalaya, Pinakbet, Bicol Express, Ukoy, Vegetable Lumpia, Chicken Adobo, Chop Suey, Beef Tapa, Beef Caldereta, Ginisang Sardinas, Chicken Tinola, Garlic Fried Rice, Pancit Bihon, Corned Beef Guisado, Pork Menudo, Ginataang Gulay, Ginisang Munggo, Filipino Chicken Curry
 
-> ⚠️ **Known gap (Week 7, Day 4 — not yet done):** `servings` and the associated ingredient quantities/cost/calories for these seeded meals are still **sample data**, not yet normalized to represent exactly 1 serving. The Meal Detail screen currently shows whatever `servings` value the seed data has, not a guaranteed "1 serving."
+> ⚠️ **Known gap (Week 7, Day 4 — not yet done):** `servings` and the associated ingredient quantities/cost/calories for these seeded meals are still **sample data**, not yet normalized to represent exactly 1 serving. The Meal Detail screen currently shows whatever `servings` value the seed data has, not a guaranteed "1 serving." The Nutrition caloric check compares each meal's `calories` to a per-serving bracket, so nutrition results should be treated as provisional until this is done.
 
 Meal navigation supports nested meal-detail routes (within the Meals tab) and a standalone meal-detail route (from Favorites and other non-shell entry points):
 
@@ -276,6 +277,7 @@ Meal Details
   ├── Estimated Cost
   ├── Cooking Time
   ├── Difficulty
+  ├── Nutrition (Week 8)
   ├── Ingredients
   ├── Instructions
   └── Favorite toggle
@@ -283,7 +285,7 @@ Meal Details
 
 ---
 
-# ⭐ Recommendations — ✅ Complete (Week 6), Extended (Week 7)
+# ⭐ Recommendations — ✅ Complete (Week 6), Extended (Week 7), Nutrition Badge (Week 8)
 
 The deterministic recommendation system is now implemented end-to-end.
 
@@ -357,6 +359,8 @@ Meals containing allergies are excluded (unchanged, hard filter).
 
 Available substitutes and optional ingredients can allow a meal to remain recommendable.
 
+**Week 8:** nutritional adequacy is shown alongside each recommendation but is **informational** — it does not change the hybrid score weights or the ranking.
+
 ### Ingredient adaptation
 
 The recommendation system recognizes several ingredient actions:
@@ -398,10 +402,72 @@ Recommendation cards display information such as:
 * Omitted optional ingredients
 * Meal image
 * Estimated cost
+* Nutrition badge (Week 8)
 
 Pantry changes automatically trigger a recommendation refresh.
 
 This is important because the Flutter application uses a persistent `StatefulShellRoute`, meaning screens can remain alive while the user switches tabs.
+
+---
+
+# 🥗 Nutrition — ✅ Built (Week 8), Results Pending Final Data Verification
+
+The Nutrition feature tells the user whether a meal is **nutritionally adequate for them**, using Philippine dietary standards. It appears in two places:
+
+* **Meal Detail** — a Nutrition section for the opened meal.
+* **Recommendation cards** — a compact nutrition badge.
+
+All nutrition logic runs on the FastAPI backend; the Flutter client only requests and displays the result. The backend combines the user's profile (date of birth, sex, physical activity level) with the meal (calories and ingredients) and applies:
+
+* **Caloric adequacy** — the meal's calories vs. a per-meal bracket derived from PDRI 2015 (FNRI-DOST), scaled for activity level with FAO/WHO/UNU PAL ratios.
+* **Food-group adequacy** — the meal's Grow/Glow balance vs. Pinggang Pinoy (FNRI-DOST 2016) bands.
+
+A meal is nutritionally adequate only when **both** checks pass. Seeded meals are single ulam dishes (rice is its own meal), so the backend scales both checks to an ulam rather than a full plate; the methodology and its limitations are documented in the backend README.
+
+Implemented (Flutter):
+
+* ✅ `ApiConstants.mealNutritionAdequacy(id)` → `/meals/$id/nutrition-adequacy`
+* ✅ Nutrition section on the Meal Detail screen, showing the server's adequacy result for the signed-in user
+* ✅ Nutrition badge on recommendation cards, fed by the extended `/recommendations` response (no extra request per card)
+* ✅ Nutrition results follow the user's profile — updating physical activity level, date of birth, or sex changes the verdict
+
+```text
+Flutter
+   ↓
+Meal Detail (Nutrition section)              Recommendation Card (badge)
+   ↓                                                ↓
+GET /meals/{id}/nutrition-adequacy           GET /recommendations
+   ↓                                                ↓
+FastAPI Nutrition Service  ←── Profile + Meal ──→  (nutrition result per meal)
+   ↓
+Caloric adequacy + Food-group adequacy
+   ↓
+Nutritional adequacy
+```
+
+### What the server returns
+
+| Field | Values | Meaning |
+|-------|--------|---------|
+| `caloric_adequacy` | `within` \| `below` \| `above` \| `unavailable` | Meal calories vs. the user's per-meal bracket |
+| `food_group_proportions` | `{go, grow, glow}` \| `null` | Meal's Go/Grow/Glow split by mass (%) |
+| `food_group_adequate` | `true` \| `false` \| `null` | Grow/Glow balance verdict |
+| `nutritionally_adequate` | `true` \| `false` \| `null` | Both checks pass; `null` if either half is unavailable |
+| `is_staple` | `true` \| `false` | Staple meal (e.g. Garlic Fried Rice), not judged as an ulam |
+
+### States the UI must handle
+
+A result can be **unavailable** rather than adequate/inadequate, and the client should never present that as a failure:
+
+* Physical activity level not set, or a sex value with no PDRI row → `caloric_adequacy: unavailable`
+* Meal has no calories value, or no classifiable ingredients → `null` verdicts
+* Staple meal → `is_staple: true`, no verdict
+
+### Known limitations
+
+* 🔲 **Staple meals:** the backend now returns `is_staple` for Garlic Fried Rice. Showing a dedicated "staple" state in the client (instead of a generic "unavailable"), plus a short note that the Go group is supplied by rice, is not yet implemented.
+* Results are provisional until the Week 7 Day 4 servings/calories normalization is done and the evaluation is rerun (see the note under Meals).
+* Detailed nutrient metrics (protein, carbohydrates, fat) are not part of this feature — see Future features.
 
 ---
 
@@ -657,11 +723,48 @@ Week 7 focuses on fixes to existing features before Nutrition (Week 8): Meal Pla
 * ✅ Flutter: activity selector added to the shared `ProfileForm` (both Setup and Edit)
 * ✅ Flutter: surfaced on the read-only Profile view
 * ✅ Flutter: `ProfileCreateRequest` sends it as required; `ProfileUpdateRequest` sends it only if changed
-* ⚪ Not yet used in recommendation scoring — this is intentional groundwork for Week 8's Nutrition feature, not a Week 7 recommendation change
+* ⚪ Not used in recommendation scoring — it feeds Week 8's Nutrition feature (see below), not the recommendation score
 
 ### Remaining
 
 * 🔲 Day 4 — Meal servings normalization (1-serving baseline across all 20 seeded meals — current data is still sample/unverified servings, ingredient quantities, cost, and calories)
+
+---
+
+# 🥗 Week 8 — Nutrition (Built)
+
+Week 8 adds the Nutrition feature: for each meal and user, whether the meal is nutritionally adequate against Philippine dietary standards (PDRI 2015 for energy, Pinggang Pinoy for food groups). It supports the thesis's Objective 4. Most of the work is backend; the Flutter side displays the result.
+
+### Days 1–4 — Backend ✅
+
+* ✅ **Day 1:** PDRI energy table and daily caloric requirement per profile (sex + age bracket, scaled for activity level)
+* ✅ **Day 2:** `ingredient_food_groups` reference table (Go / Grow / Glow / other) and seed data
+* ✅ **Day 3:** caloric adequacy, food-group proportions, and the combined adequacy result — verified by hand calculation
+* ✅ **Day 4:** `GET /api/v1/meals/{meal_id}/nutrition-adequacy`, and the `/recommendations` response extended with each meal's nutrition result
+
+### Day 5 — Flutter ✅
+
+* ✅ `ApiConstants.mealNutritionAdequacy(id)` endpoint constant
+* ✅ Nutrition section on the Meal Detail screen
+* ✅ Nutrition badge on recommendation cards
+
+### Day 6 — Evaluation harness ✅ (backend)
+
+* ✅ `scripts/evaluate_nutrition_adequacy.py` runs the real adequacy logic over a 30-profile × meal test matrix (5 PDRI age brackets × 2 sexes × 3 activity levels) and reports the accuracy measure for Objective 4, with per-criterion and per-meal breakdowns
+* ✅ `scripts/debug_food_group_exclusions.py` lists which ingredients are counted or silently dropped from each meal's food-group proportions
+* ⚪ Results are provisional until Week 7 Day 4 (1-serving normalization) is complete and the evaluation is rerun
+
+### Methodology refinements made during Week 8 (backend)
+
+* ✅ **Ulam-only scaling:** seeded meals are single dishes and rice is its own meal, so the per-meal calorie bracket and the Pinggang Pinoy bands are scaled to an ulam rather than a full plate (`ULAM_ENERGY_SHARE`, ulam-only Grow/Glow bands)
+* ✅ **Staple handling:** Garlic Fried Rice is reported as a staple (`is_staple`) instead of being judged as an ulam
+* ✅ **Food-group data completed:** 21 ingredients that had no classification were added (migration `c2d3e4f5a6b7`) and gram conversions added for piece-counted ingredients (tomato, potato, sweet potato, radish, quail egg), so no ingredient in the seeded meals is silently dropped
+* ✅ Details and limitations are documented in the backend README
+
+### Remaining
+
+* 🔲 Flutter display for staple meals (`is_staple`)
+* 🔲 Final evaluation rerun after the servings/calories normalization
 
 ---
 
@@ -723,6 +826,8 @@ Details  Grocery List      Meal Details         Settings
 Home ──→ Favorites ──→ Meal Details (standalone route)
 ```
 
+The Nutrition section lives inside Meal Details, so it is reachable from every route that opens a meal.
+
 ---
 
 # 🔐 Authentication & API Security
@@ -761,8 +866,9 @@ Protected backend features include:
 * Recommendations
 * Grocery List
 * Favorites
+* Nutrition
 
-Note: `GET /meals/units` and `GET /meals/ingredients/suggestions` are intentionally **unauthenticated**, since they expose no user-specific data — just the set of units/ingredients used across the shared meal database.
+Note: `GET /meals/units` and `GET /meals/ingredients/suggestions` are intentionally **unauthenticated**, since they expose no user-specific data — just the set of units/ingredients used across the shared meal database. `GET /meals/{id}/nutrition-adequacy` is authenticated, since the result depends on the caller's profile.
 
 User-specific data is always associated with the authenticated user's profile.
 
@@ -838,6 +944,8 @@ This keeps UI code independent from the underlying API implementation.
 The Recommendations feature is a partial exception as of Week 7: `RecommendationController` also owns in-memory sort state (`_rawRecommendations`, `_sortBy`) and re-sorts client-side on toggle, rather than every state change mapping 1:1 to a fresh network round-trip. This is a deliberate UX optimization (instant, race-free sort toggling), not a layering violation — the controller still goes through `RecommendationRepository` → `RecommendationsRemoteDatasource` → FastAPI for the actual fetch.
 
 Settings is a partial exception to this layering — it has no `data/` or `domain/` layer of its own, since it doesn't call any dedicated backend endpoint. It composes `ThemeModeController` (in `core/`, since theme is an app-wide concern rather than feature-specific) with the existing `AuthController`.
+
+Nutrition has no client-side calculation: the adequacy result is computed entirely by the backend and the client only requests and renders it.
 
 ---
 
@@ -1029,6 +1137,7 @@ The application supports:
 * ✅ Shared confirmation dialog widget for destructive actions
 * ✅ Consistent ₱0.00-style peso formatting across every money display (Week 7)
 * ✅ Floating pill-style sort toggle on Recommendations (Week 7)
+* ✅ Nutrition section (Meal Detail) and nutrition badge (recommendation cards) (Week 8)
 
 ### Brand Colors
 
@@ -1067,7 +1176,9 @@ FastAPI
 │
 ├── Grocery List
 │
-└── Favorites
+├── Favorites
+│
+└── Nutrition
 ```
 
 The general API flow is:
@@ -1170,6 +1281,18 @@ Favorite Toggle
 Favorites Screen
 ```
 
+Nutrition (Week 8) is also independent of the planning pipeline — it is computed per meal for the signed-in user and shown wherever a meal is shown in detail or recommended:
+
+```text
+Profile (DOB, sex, activity level)
++
+Meal (calories, ingredients)
+      ↓
+Nutritional Adequacy (server-computed)
+      ↓
+Meal Details section  /  Recommendation badge
+```
+
 ---
 
 # 🧪 Testing & Edge Cases
@@ -1220,6 +1343,7 @@ Implemented and tested:
 * ✅ Recommendations: affordability filter — meals over the daily budget are excluded (Week 7)
 * ✅ Consistent peso formatting across all money displays (Week 7)
 * ✅ Profile Setup and Edit both require a physical activity level (Week 7)
+* ✅ Nutrition: backend adequacy logic verified by hand calculation and through the evaluation harness (Week 8)
 
 ### Not yet verified
 
@@ -1228,6 +1352,8 @@ Implemented and tested:
 * 🔲 Favorites behavior when the underlying meal is deleted from the catalog (cascade is implemented backend-side but not exercised end-to-end from the app)
 * 🔲 Automated unit tests for `scoring.py` — cooking-skill scoring was verified manually only (Swagger + in-app)
 * 🔲 Meal servings, ingredient quantities, cost, and calories normalized to a 1-serving baseline (Week 7, Day 4)
+* 🔲 Nutrition UI in the non-standard states: activity level not set, unavailable results, and staple meals (Garlic Fried Rice) — confirm end-to-end in the app
+* 🔲 Automated tests for the Nutrition feature (backend and Flutter) — verification so far is manual
 
 ---
 
@@ -1255,6 +1381,8 @@ SUPABASE_SERVICE_ROLE_KEY
 ```
 
 The service-role key is **server-side only** and must never be included in the Flutter application.
+
+The backend database must be fully migrated (`alembic upgrade head`) — Nutrition depends on the `ingredient_food_groups` table and its seed data.
 
 The `shared_preferences` package is required for both the theme-preference (Settings) and grocery-checklist persistence features. Confirm it is listed in `pubspec.yaml`.
 
@@ -1476,6 +1604,25 @@ The Supabase service-role key belongs exclusively on the FastAPI backend.
 * [x] Physical activity level in Flutter (`ProfileOptions`, shared `ProfileForm`, create/update requests, Profile view)
 * [ ] Meal servings normalization — 1-serving baseline across all 20 seeded meals (ingredient quantities, cost, calories)
 
+## Phase 11 — Nutrition 🚧 (results pending final data verification)
+
+* [x] PDRI 2015 energy table and daily caloric requirement (sex + age bracket, scaled for activity level)
+* [x] `ingredient_food_groups` reference table and seed (Go / Grow / Glow / other)
+* [x] Caloric adequacy against a per-meal bracket
+* [x] Food-group proportions and Pinggang Pinoy adequacy
+* [x] Combined nutritional adequacy result
+* [x] Ulam-only scaling of the calorie bracket and food-group bands
+* [x] Staple-meal handling in the backend (`is_staple`)
+* [x] Missing ingredient classifications and gram conversions filled in
+* [x] `GET /api/v1/meals/{meal_id}/nutrition-adequacy`
+* [x] `/recommendations` response extended with nutrition results
+* [x] Flutter `ApiConstants.mealNutritionAdequacy(id)`
+* [x] Nutrition section on Meal Detail
+* [x] Nutrition badge on recommendation cards
+* [x] Evaluation harness for Objective 4 (`scripts/evaluate_nutrition_adequacy.py`)
+* [ ] Flutter display for staple meals
+* [ ] Final evaluation rerun after servings/calories normalization
+
 ---
 
 # 🚧 Future / Not Yet Implemented Features
@@ -1498,16 +1645,16 @@ The following features are **not yet implemented**.
 * [ ] Snacks
 * [ ] Category-based filtering
 
-### 🥗 Nutrition Information — 🔲 Not Yet Implemented (Planned: Week 8)
+### 🥗 Detailed Nutrition Metrics — 🔲 Not Yet Implemented
 
-* [ ] PDRI-based caloric bracket calculation (builds on the physical activity level field added to Profile in Week 7)
-* [ ] Detailed nutritional information
+Caloric and food-group adequacy are implemented (see Nutrition above). Per-nutrient detail is not:
+
 * [ ] Protein
 * [ ] Carbohydrates
 * [ ] Fat
 * [ ] Other nutritional metrics
 
-Basic calorie information is currently available for seeded meals, but a complete nutrition feature has not yet been implemented.
+Basic calorie information is available for seeded meals.
 
 ### 🔔 Notifications — 🔲 Not Yet Implemented
 
@@ -1550,7 +1697,7 @@ Potential future functionality:
 
 # 📌 Project Status
 
-> **Current milestone: Week 6 Complete 🎉 — Week 7 Nearly Complete (Day 4 outstanding)**
+> **Current milestone: Week 6 Complete 🎉 — Week 7 Nearly Complete (Day 4 outstanding) — Week 8 (Nutrition) Built, results pending final data verification**
 
 TipidMeal now has a working core application flow consisting of:
 
@@ -1561,7 +1708,7 @@ Profile ──→ Settings
       ↓
 Home ──→ Favorites
       ↓
-Meals
+Meals ──→ Nutrition
       ↓
 Meal Planner
       ↓
@@ -1569,10 +1716,20 @@ Grocery List
       ↓
 Pantry
       ↓
-Deterministic Recommendations
+Deterministic Recommendations (+ Nutrition badge)
       ↓
 Meal Details
 ```
+
+Completed in Week 8:
+
+* ✅ Daily caloric requirement per profile (PDRI 2015, scaled for physical activity level)
+* ✅ Ingredient food-group classification (Go / Grow / Glow / other)
+* ✅ Caloric adequacy and Pinggang Pinoy food-group adequacy, combined into a nutritional-adequacy result
+* ✅ Ulam-only scaling and staple handling to fit single-dish meal data
+* ✅ `GET /meals/{id}/nutrition-adequacy` and nutrition results on `/recommendations`
+* ✅ Nutrition section on Meal Detail and nutrition badge on recommendation cards
+* ✅ Evaluation harness for the Objective 4 accuracy measure
 
 Completed in Week 7:
 
@@ -1584,7 +1741,7 @@ Completed in Week 7:
 * ✅ Affordability hard filter — meals over the daily budget are excluded
 * ✅ Fallback meals now returned by the backend and tiered after `adapt` meals
 * ✅ Cooking skill scoring manually verified against all 20 seeded meals
-* ✅ Physical activity level on Profile (required at setup, editable later) — groundwork for Week 8's Nutrition feature
+* ✅ Physical activity level on Profile (required at setup, editable later) — feeds Week 8's Nutrition feature
 
 Completed in Week 6:
 
@@ -1608,11 +1765,13 @@ Completed in earlier weeks (carried forward):
 
 ### Current Limitations / Remaining Work
 
-* 🔲 Meal servings normalization to a 1-serving baseline (Week 7, Day 4) — seeded servings, quantities, cost, and calories are still sample data
-* 🔲 Automated unit tests for `scoring.py` (cooking-skill scoring verified manually only)
+* 🔲 Meal servings normalization to a 1-serving baseline (Week 7, Day 4) — seeded servings, quantities, cost, and calories are still sample data, so nutrition results are provisional
+* 🔲 Final Objective 4 evaluation rerun once the servings/calories data is normalized
+* 🔲 Flutter display for staple meals (`is_staple`)
+* 🔲 Automated unit tests for `scoring.py` and for the Nutrition feature (verified manually only)
 * 🔲 Food categories
 * 🔲 Advanced meal filtering
-* 🔲 Full nutrition information (planned: Week 8)
+* 🔲 Detailed nutrition metrics (protein, carbohydrates, fat)
 * 🔲 Notifications
 * 🔲 AI-assisted recommendations
 * 🔲 Admin functionality

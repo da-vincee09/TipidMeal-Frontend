@@ -5,6 +5,8 @@ import 'package:meal_recommendation_app/app/colors.dart';
 import 'package:meal_recommendation_app/core/utils/currency_utils.dart';
 import 'package:meal_recommendation_app/features/meals/presentation/providers/meal_provider.dart';
 import 'package:meal_recommendation_app/features/favorites/presentation/widgets/favorite_button.dart';
+import 'package:meal_recommendation_app/features/nutrition/data/models/nutrition_adequacy_model.dart';
+import 'package:go_router/go_router.dart';
 
 class MealDetailScreen extends ConsumerWidget {
   final String mealId;
@@ -228,6 +230,18 @@ class MealDetailScreen extends ConsumerWidget {
                         ),
                       ),
 
+                      // ================= NUTRITION =================
+                      const SizedBox(height: 28),
+
+                      _SectionHeader(
+                        icon: Icons.eco_outlined,
+                        title: 'Nutrition',
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      _NutritionSection(mealId: meal.id),
+
                       // ================= INSTRUCTIONS =================
                       const SizedBox(height: 28),
 
@@ -267,6 +281,263 @@ class MealDetailScreen extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+}
+
+// ============================================================
+// NUTRITION SECTION
+// ============================================================
+
+class _NutritionSection extends ConsumerWidget {
+  final String mealId;
+
+  const _NutritionSection({required this.mealId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final nutritionAsync = ref.watch(mealNutritionAdequacyProvider(mealId));
+
+    return nutritionAsync.when(
+      loading: () => const _SectionCard(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: AppColors.burntOrange,
+              ),
+            ),
+          ),
+        ),
+      ),
+      error: (error, _) => _SectionCard(
+        child: Text(
+          'Unable to load nutrition info right now.',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.lightSecondaryText,
+              ),
+        ),
+      ),
+      data: (nutrition) => _NutritionCard(nutrition: nutrition),
+    );
+  }
+}
+
+class _NutritionCard extends StatelessWidget {
+  final NutritionAdequacyModel nutrition;
+
+  const _NutritionCard({required this.nutrition});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Caloric adequacy unavailable means the viewer hasn't set an
+    // activity level yet — prompt to complete their profile instead
+    // of showing a blank or misleading verdict.
+    if (nutrition.isUnavailable) {
+      return _SectionCard(
+        child: Row(
+          children: [
+            const Icon(
+              Icons.info_outline_rounded,
+              color: AppColors.burntOrange,
+              size: 22,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Set your activity level in your profile to see how this meal fits your calorie needs.',
+                style: theme.textTheme.bodySmall?.copyWith(height: 1.4),
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () => context.push('/profile'),
+              child: const Text('Set up'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Caloric verdict
+          Row(
+            children: [
+              Icon(
+                _caloricIcon(nutrition.caloricAdequacy),
+                size: 20,
+                color: _caloricColor(nutrition.caloricAdequacy),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  nutrition.caloricAdequacyLabel,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          if (nutrition.foodGroupProportions != null) ...[
+            const SizedBox(height: 18),
+            Text(
+              'Food group breakdown',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.lightSecondaryText,
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            _FoodGroupBar(
+              goPercent: nutrition.goPercent,
+              growPercent: nutrition.growPercent,
+              glowPercent: nutrition.glowPercent,
+            ),
+
+            const SizedBox(height: 10),
+
+            Wrap(
+              spacing: 14,
+              runSpacing: 6,
+              children: [
+                _FoodGroupLegend(
+                  color: AppColors.burntOrange,
+                  label: 'Go ${nutrition.goPercent.toStringAsFixed(0)}%',
+                ),
+                _FoodGroupLegend(
+                  color: AppColors.olive,
+                  label: 'Grow ${nutrition.growPercent.toStringAsFixed(0)}%',
+                ),
+                _FoodGroupLegend(
+                  color: Colors.green.shade300,
+                  label: 'Glow ${nutrition.glowPercent.toStringAsFixed(0)}%',
+                ),
+              ],
+            ),
+
+            if (nutrition.foodGroupAdequate == false) ...[
+              const SizedBox(height: 10),
+              Text(
+                'Outside the recommended Pinggang Pinoy range.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.lightSecondaryText,
+                ),
+              ),
+            ],
+          ] else ...[
+            const SizedBox(height: 10),
+            Text(
+              'Not enough classified ingredients to show a food-group breakdown.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.lightSecondaryText,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  IconData _caloricIcon(String adequacy) {
+    switch (adequacy) {
+      case 'within':
+        return Icons.check_circle_rounded;
+      case 'below':
+        return Icons.arrow_downward_rounded;
+      case 'above':
+        return Icons.arrow_upward_rounded;
+      default:
+        return Icons.help_outline_rounded;
+    }
+  }
+
+  Color _caloricColor(String adequacy) {
+    switch (adequacy) {
+      case 'within':
+        return AppColors.olive;
+      case 'below':
+      case 'above':
+        return AppColors.burntOrange;
+      default:
+        return AppColors.lightSecondaryText;
+    }
+  }
+}
+
+class _FoodGroupBar extends StatelessWidget {
+  final double goPercent;
+  final double growPercent;
+  final double glowPercent;
+
+  const _FoodGroupBar({
+    required this.goPercent,
+    required this.growPercent,
+    required this.glowPercent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox(
+        height: 14,
+        child: Row(
+          children: [
+            Expanded(
+              flex: (goPercent * 10).round().clamp(1, 1000),
+              child: Container(color: AppColors.burntOrange),
+            ),
+            Expanded(
+              flex: (growPercent * 10).round().clamp(1, 1000),
+              child: Container(color: AppColors.olive),
+            ),
+            Expanded(
+              flex: (glowPercent * 10).round().clamp(1, 1000),
+              child: Container(color: Colors.green.shade300),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FoodGroupLegend extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _FoodGroupLegend({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 5),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      ],
     );
   }
 }

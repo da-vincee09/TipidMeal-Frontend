@@ -1,4 +1,6 @@
 import 'package:meal_recommendation_app/features/meals/data/models/meal_model.dart';
+import 'package:meal_recommendation_app/features/nutrition/data/models/nutrition_adequacy_model.dart';
+
 
 class IngredientAdaptationModel {
   final String ingredient;
@@ -141,6 +143,7 @@ class RecommendationModel {
   final double dislikedScore;
   final double hybridScore;
   final MealAdaptationModel adaptation;
+  final NutritionAdequacyModel nutrition;
 
   const RecommendationModel({
     required this.meal,
@@ -151,6 +154,7 @@ class RecommendationModel {
     required this.dislikedScore,
     required this.hybridScore,
     required this.adaptation,
+    required this.nutrition,
   });
 
   factory RecommendationModel.fromJson(Map<String, dynamic> json) {
@@ -164,6 +168,9 @@ class RecommendationModel {
       hybridScore: _parseDouble(json['hybrid_score']),
       adaptation:
           MealAdaptationModel.fromJson(json['adaptation'] as Map<String, dynamic>),
+      nutrition: NutritionAdequacyModel.fromJson(
+        json['nutrition'] as Map<String, dynamic>,
+      ),
     );
   }
 
@@ -173,10 +180,7 @@ class RecommendationModel {
     throw FormatException('Unexpected numeric type: ${value.runtimeType}');
   }
 
-  /// e.g. "72%" — coverage is a 0.0–1.0 fraction from the backend.
   String get displayCoveragePercent => '${(coverage * 100).round()}%';
-
-  /// e.g. "85" — hybrid_score is also a 0.0–1.0 fraction.
   String get displayHybridScore => (hybridScore * 100).round().toString();
 
   @override
@@ -195,7 +199,8 @@ class RecommendationModel {
         other.allergyScore == allergyScore &&
         other.dislikedScore == dislikedScore &&
         other.hybridScore == hybridScore &&
-        other.adaptation == adaptation;
+        other.adaptation == adaptation &&
+        other.nutrition == nutrition;
   }
 
   @override
@@ -208,5 +213,6 @@ class RecommendationModel {
         dislikedScore,
         hybridScore,
         adaptation,
+        nutrition,
       );
 }

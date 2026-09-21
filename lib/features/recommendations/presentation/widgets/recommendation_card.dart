@@ -117,6 +117,11 @@ class RecommendationCard extends StatelessWidget {
                         ],
                       ),
 
+                      if (recommendation.nutrition.isBalanced) ...[
+                        const SizedBox(height: 6),
+                        const _NutritionBadge(),
+                      ],
+
                       const SizedBox(height: 6),
 
                       // Coverage information
@@ -322,6 +327,37 @@ class _ScoreBadge extends StatelessWidget {
               fontSize: 11,
               fontWeight: FontWeight.w800,
               color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NutritionBadge extends StatelessWidget {
+  const _NutritionBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.olive.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.olive.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.eco_rounded, size: 12, color: AppColors.olive),
+          const SizedBox(width: 4),
+          Text(
+            'Nutritionally balanced',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppColors.olive,
             ),
           ),
         ],

@@ -1,7 +1,7 @@
 class ApiConstants {
   ApiConstants._();
 
-  static const String baseUrl = 'http://192.168.254.102:8000/api/v1';    
+  static const String baseUrl = 'http://192.168.254.100:8000/api/v1';    
 
   static const String profiles = '/profiles';
   static const String profileMe = '/profiles/me';
@@ -11,6 +11,7 @@ class ApiConstants {
   static const String meals = '/meals';
   static String mealDetail(String id) => '/meals/$id';
   static String get mealUnits => '${ApiConstants.meals}/units';
+  static String mealNutritionAdequacy(String id) => '/meals/$id/nutrition-adequacy';
 
   static const String recommendations = '/recommendations';
 
