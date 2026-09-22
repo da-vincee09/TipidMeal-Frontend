@@ -113,6 +113,19 @@ class _GroceryListScreenState extends ConsumerState<GroceryListScreen> {
                     ),
                   ],
                 ),
+                if (list.displayTotalEstimatedCost != null) ...[
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Estimated total: ${list.displayTotalEstimatedCost}',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: AppColors.burntOrange,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 for (final item in list.items)
                   Padding(

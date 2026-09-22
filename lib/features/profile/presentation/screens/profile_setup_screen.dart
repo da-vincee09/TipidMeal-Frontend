@@ -22,7 +22,7 @@ class ProfileSetupScreen extends ConsumerWidget {
       lastName: data.lastName,
       dateOfBirth: data.dateOfBirth,
       sex: data.sex,
-      dailyBudget: data.dailyBudget,
+      budgetPerMeal: data.budgetPerMeal,
       cookingSkillLevel: data.cookingSkillLevel,
       physicalActivityLevel: data.physicalActivityLevel,
       foodAllergies: data.foodAllergies,

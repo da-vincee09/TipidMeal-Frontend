@@ -3,7 +3,7 @@ class ProfileCreateRequest {
   final String lastName;
   final DateTime dateOfBirth;
   final String sex;
-  final double dailyBudget;
+  final double budgetPerMeal;
   final String cookingSkillLevel;
   final String physicalActivityLevel;
   final List<String> foodAllergies;
@@ -15,7 +15,7 @@ class ProfileCreateRequest {
     required this.lastName,
     required this.dateOfBirth,
     required this.sex,
-    required this.dailyBudget,
+    required this.budgetPerMeal,
     required this.cookingSkillLevel,
     required this.physicalActivityLevel,
     this.foodAllergies = const [],
@@ -23,16 +23,13 @@ class ProfileCreateRequest {
     this.profileImageUrl,
   });
 
-  /// Converts this request into the JSON body FastAPI expects.
   Map<String, dynamic> toJson() {
     return {
       'first_name': firstName,
       'last_name': lastName,
-      // Date-only string, e.g. "2002-05-15", matching the backend's
-      // expected format for `date_of_birth`.
       'date_of_birth': dateOfBirth.toIso8601String().split('T').first,
       'sex': sex,
-      'daily_budget': dailyBudget,
+      'budget_per_meal': budgetPerMeal,
       'cooking_skill_level': cookingSkillLevel,
       'physical_activity_level': physicalActivityLevel,
       'food_allergies': foodAllergies,
@@ -46,7 +43,7 @@ class ProfileCreateRequest {
     String? lastName,
     DateTime? dateOfBirth,
     String? sex,
-    double? dailyBudget,
+    double? budgetPerMeal,
     String? cookingSkillLevel,
     String? physicalActivityLevel,
     List<String>? foodAllergies,
@@ -58,7 +55,7 @@ class ProfileCreateRequest {
       lastName: lastName ?? this.lastName,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       sex: sex ?? this.sex,
-      dailyBudget: dailyBudget ?? this.dailyBudget,
+      budgetPerMeal: budgetPerMeal ?? this.budgetPerMeal,
       cookingSkillLevel: cookingSkillLevel ?? this.cookingSkillLevel,
       physicalActivityLevel: physicalActivityLevel ?? this.physicalActivityLevel,
       foodAllergies: foodAllergies ?? this.foodAllergies,
@@ -70,5 +67,5 @@ class ProfileCreateRequest {
   @override
   String toString() =>
       'ProfileCreateRequest(firstName: $firstName, lastName: $lastName, '
-      'sex: $sex, dailyBudget: $dailyBudget)';
+      'sex: $sex, budgetPerMeal: $budgetPerMeal)';
 }

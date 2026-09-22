@@ -4,6 +4,7 @@ class GroceryListItemModel {
   final double requiredQuantity;
   final double pantryQuantity;
   final double quantityToBuy;
+  final double? estimatedCost;
 
   const GroceryListItemModel({
     required this.ingredient,
@@ -11,6 +12,7 @@ class GroceryListItemModel {
     required this.requiredQuantity,
     required this.pantryQuantity,
     required this.quantityToBuy,
+    this.estimatedCost,
   });
 
   factory GroceryListItemModel.fromJson(Map<String, dynamic> json) {
@@ -20,10 +22,18 @@ class GroceryListItemModel {
       requiredQuantity: _parseDecimal(json['required_quantity']),
       pantryQuantity: _parseDecimal(json['pantry_quantity']),
       quantityToBuy: _parseDecimal(json['quantity_to_buy']),
+      estimatedCost: _parseNullableDecimal(json['estimated_cost']),
     );
   }
 
   static double _parseDecimal(dynamic value) {
+    if (value is String) return double.parse(value);
+    if (value is num) return value.toDouble();
+    throw FormatException('Unexpected quantity type: ${value.runtimeType}');
+  }
+
+  static double? _parseNullableDecimal(dynamic value) {
+    if (value == null) return null;
     if (value is String) return double.parse(value);
     if (value is num) return value.toDouble();
     throw FormatException('Unexpected quantity type: ${value.runtimeType}');
@@ -40,6 +50,13 @@ class GroceryListItemModel {
   String get displayRequiredQuantity => _trim(requiredQuantity);
   String get displayPantryQuantity => _trim(pantryQuantity);
 
+  /// e.g. "₱210.00" — always 2 decimal places, unlike the trimmed
+  /// quantity getters above, since money shouldn't drop trailing zeros.
+  String? get displayEstimatedCost {
+    if (estimatedCost == null) return null;
+    return '₱${estimatedCost!.toStringAsFixed(2)}';
+  }
+
   /// True when the pantry has none of this ingredient at all, as
   /// opposed to just not enough — useful for the UI to distinguish
   /// "buy some" from "buy more".
@@ -48,7 +65,7 @@ class GroceryListItemModel {
   @override
   String toString() =>
       'GroceryListItemModel(ingredient: $ingredient, quantityToBuy: '
-      '$quantityToBuy $unit)';
+      '$quantityToBuy $unit, estimatedCost: $estimatedCost)';
 
   @override
   bool operator ==(Object other) {
@@ -58,7 +75,8 @@ class GroceryListItemModel {
         other.unit == unit &&
         other.requiredQuantity == requiredQuantity &&
         other.pantryQuantity == pantryQuantity &&
-        other.quantityToBuy == quantityToBuy;
+        other.quantityToBuy == quantityToBuy &&
+        other.estimatedCost == estimatedCost;
   }
 
   @override
@@ -68,6 +86,7 @@ class GroceryListItemModel {
         requiredQuantity,
         pantryQuantity,
         quantityToBuy,
+        estimatedCost,
       );
 }
 
@@ -75,11 +94,13 @@ class GroceryListResponseModel {
   final DateTime startDate;
   final DateTime endDate;
   final List<GroceryListItemModel> items;
+  final double? totalEstimatedCost;
 
   const GroceryListResponseModel({
     required this.startDate,
     required this.endDate,
     required this.items,
+    this.totalEstimatedCost,
   });
 
   factory GroceryListResponseModel.fromJson(Map<String, dynamic> json) {
@@ -89,6 +110,16 @@ class GroceryListResponseModel {
       items: (json['items'] as List<dynamic>)
           .map((e) => GroceryListItemModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      totalEstimatedCost: GroceryListItemModel._parseNullableDecimal(
+        json['total_estimated_cost'],
+      ),
     );
+  }
+
+  /// e.g. "₱222.21" — null when no items in the list had a known price
+  /// (matches the backend's has_any_priced_item logic).
+  String? get displayTotalEstimatedCost {
+    if (totalEstimatedCost == null) return null;
+    return '₱${totalEstimatedCost!.toStringAsFixed(2)}';
   }
 }

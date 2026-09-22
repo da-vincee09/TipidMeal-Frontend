@@ -101,9 +101,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   Expanded(
                     child: _SummaryCard(
                       icon: Icons.payments_outlined,
-                      label: 'Daily Budget',
+                      label: 'Budget Per Meal',
                       value: profile != null
-                          ? formatPeso(profile.dailyBudget)
+                          ? formatPeso(profile.budgetPerMeal)
                           : '—',
                     ),
                   ),

@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:meal_recommendation_app/app/colors.dart';
 import 'package:meal_recommendation_app/app/routes.dart';
 import 'package:meal_recommendation_app/core/extensions/context_extension.dart';
+import 'package:meal_recommendation_app/core/utils/password_validator.dart';
+import 'package:meal_recommendation_app/core/widgets/password_requirements.dart';
 import 'package:meal_recommendation_app/features/authentication/presentation/providers/auth_provider.dart';
 import 'package:meal_recommendation_app/features/profile/presentation/providers/profile_provider.dart';
 
@@ -27,7 +29,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _obscureConfirmPassword = true;
 
   @override
+  void initState() {
+    super.initState();
+    // Rebuild when the password field gains/loses focus so the
+    // requirements checklist can show/hide.
+    _passwordFocusNode.addListener(_onPasswordFocusChanged);
+  }
+
+  void _onPasswordFocusChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   void dispose() {
+    _passwordFocusNode.removeListener(_onPasswordFocusChanged);
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -53,9 +68,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
-    if (password.length < 6) {
+    final unmet = PasswordValidator.unmetLabels(password);
+    if (unmet.isNotEmpty) {
       context.showSnackBar(
-        'Password must be at least 6 characters.',
+        'Password is too weak. It needs: ${unmet.join(', ').toLowerCase()}.',
         isError: true,
       );
       return;
@@ -320,6 +336,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             ),
                           ),
                         ),
+                      ),
+
+                      // Live password requirements checklist — visible while
+                      // the password field is focused or has text in it.
+                      ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _passwordController,
+                        builder: (context, value, _) {
+                          final show = _passwordFocusNode.hasFocus ||
+                              value.text.isNotEmpty;
+                          return AnimatedSize(
+                            duration: const Duration(milliseconds: 200),
+                            alignment: Alignment.topCenter,
+                            child: show
+                                ? PasswordRequirements(password: value.text)
+                                : const SizedBox(width: double.infinity),
+                          );
+                        },
                       ),
 
                       const SizedBox(height: 12),

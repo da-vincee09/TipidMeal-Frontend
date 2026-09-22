@@ -1,7 +1,7 @@
 class ApiConstants {
   ApiConstants._();
 
-  static const String baseUrl = 'http://192.168.254.100:8000/api/v1';    
+  static const String baseUrl = 'http://127.0.0.0:8000/api/v1';  
 
   static const String profiles = '/profiles';
   static const String profileMe = '/profiles/me';

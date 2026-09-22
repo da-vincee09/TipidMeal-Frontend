@@ -12,7 +12,7 @@ class ProfileFormData {
   final String lastName;
   final DateTime dateOfBirth;
   final String sex;
-  final double dailyBudget;
+  final double budgetPerMeal;
   final String cookingSkillLevel;
   final String physicalActivityLevel;
   final List<String> foodAllergies;
@@ -24,7 +24,7 @@ class ProfileFormData {
     required this.lastName,
     required this.dateOfBirth,
     required this.sex,
-    required this.dailyBudget,
+    required this.budgetPerMeal,
     required this.cookingSkillLevel,
     required this.physicalActivityLevel,
     required this.foodAllergies,
@@ -54,7 +54,7 @@ class ProfileForm extends StatefulWidget {
 class _ProfileFormState extends State<ProfileForm> {
   late final TextEditingController _firstNameController;
   late final TextEditingController _lastNameController;
-  late final TextEditingController _dailyBudgetController;
+  late final TextEditingController _budgetPerMealController;
 
   DateTime? _dateOfBirth;
   String? _sex;
@@ -85,8 +85,8 @@ class _ProfileFormState extends State<ProfileForm> {
 
     _firstNameController = TextEditingController(text: p?.firstName ?? '');
     _lastNameController = TextEditingController(text: p?.lastName ?? '');
-    _dailyBudgetController = TextEditingController(
-      text: p != null ? p.dailyBudget.toStringAsFixed(2) : '',
+    _budgetPerMealController = TextEditingController(
+      text: p != null ? p.budgetPerMeal.toStringAsFixed(2) : '',
     );
 
     _dateOfBirth = p?.dateOfBirth;
@@ -102,7 +102,7 @@ class _ProfileFormState extends State<ProfileForm> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _dailyBudgetController.dispose();
+    _budgetPerMealController.dispose();
     super.dispose();
   }
 
@@ -232,7 +232,7 @@ class _ProfileFormState extends State<ProfileForm> {
 
     final firstName = _firstNameController.text.trim();
     final lastName = _lastNameController.text.trim();
-    final budgetText = _dailyBudgetController.text.trim();
+    final budgetText = _budgetPerMealController.text.trim();
 
     if (firstName.length < 2) {
       context.showSnackBar(
@@ -260,10 +260,10 @@ class _ProfileFormState extends State<ProfileForm> {
       return;
     }
 
-    final dailyBudget = double.tryParse(budgetText);
-    if (dailyBudget == null || dailyBudget <= 0) {
+    final budgetPerMeal = double.tryParse(budgetText);
+    if (budgetPerMeal == null || budgetPerMeal <= 0) {
       context.showSnackBar(
-        'Please enter a valid daily budget.',
+        'Please enter a valid budget per meal.',
         isError: true,
       );
       return;
@@ -291,7 +291,7 @@ class _ProfileFormState extends State<ProfileForm> {
         lastName: lastName,
         dateOfBirth: _dateOfBirth!,
         sex: _sex!,
-        dailyBudget: dailyBudget,
+        budgetPerMeal: budgetPerMeal,
         cookingSkillLevel: _cookingSkillLevel!,
         physicalActivityLevel: _physicalActivityLevel!,
         foodAllergies: _selectedAllergies.toList(),
@@ -402,10 +402,10 @@ class _ProfileFormState extends State<ProfileForm> {
         _sectionTitle('Food Information'),
 
         TextField(
-          controller: _dailyBudgetController,
+          controller: _budgetPerMealController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           textInputAction: TextInputAction.done,
-          decoration: _fieldDecoration('Daily Budget', prefixText: '₱ '),
+          decoration: _fieldDecoration('Budget Per Meal', prefixText: '₱ '),
         ),
         const SizedBox(height: 16),
 

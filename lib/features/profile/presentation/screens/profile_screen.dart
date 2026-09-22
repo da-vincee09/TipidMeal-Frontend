@@ -27,7 +27,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       lastName: data.lastName,
       dateOfBirth: data.dateOfBirth,
       sex: data.sex,
-      dailyBudget: data.dailyBudget,
+      budgetPerMeal: data.budgetPerMeal,
       cookingSkillLevel: data.cookingSkillLevel,
       physicalActivityLevel: data.physicalActivityLevel,
       foodAllergies: data.foodAllergies,
@@ -278,7 +278,7 @@ class _ProfileView extends StatelessWidget {
           _row(context, 'Full Name', profile.fullName),
           _row(context, 'Date of Birth', _formatDate(profile.dateOfBirth)),
           _row(context, 'Sex', profile.sex),
-          _row(context, 'Daily Budget', formatPeso(profile.dailyBudget)),
+          _row(context, 'Budget Per Meal', formatPeso(profile.budgetPerMeal)),
           _row(context, 'Cooking Skill Level', ProfileOptions.skillLabel(profile.cookingSkillLevel)),
           _row(context, 'Physical Activity Level', ProfileOptions.activityLabel(profile.physicalActivityLevel)),
           _chipList(

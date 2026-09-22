@@ -3,7 +3,7 @@ class ProfileUpdateRequest {
   final String? lastName;
   final DateTime? dateOfBirth;
   final String? sex;
-  final double? dailyBudget;
+  final double? budgetPerMeal;
   final String? cookingSkillLevel;
   final String? physicalActivityLevel;
   final List<String>? foodAllergies;
@@ -15,7 +15,7 @@ class ProfileUpdateRequest {
     this.lastName,
     this.dateOfBirth,
     this.sex,
-    this.dailyBudget,
+    this.budgetPerMeal,
     this.cookingSkillLevel,
     this.physicalActivityLevel,
     this.foodAllergies,
@@ -23,8 +23,6 @@ class ProfileUpdateRequest {
     this.profileImageUrl,
   });
 
-  /// Converts this request into the JSON body FastAPI expects, omitting
-  /// any field that wasn't changed (i.e. is still null).
   Map<String, dynamic> toJson() {
     return {
       if (firstName != null) 'first_name': firstName,
@@ -32,7 +30,7 @@ class ProfileUpdateRequest {
       if (dateOfBirth != null)
         'date_of_birth': dateOfBirth!.toIso8601String().split('T').first,
       if (sex != null) 'sex': sex,
-      if (dailyBudget != null) 'daily_budget': dailyBudget,
+      if (budgetPerMeal != null) 'budget_per_meal': budgetPerMeal,
       if (cookingSkillLevel != null)
         'cooking_skill_level': cookingSkillLevel,
       if (physicalActivityLevel != null)
@@ -49,7 +47,7 @@ class ProfileUpdateRequest {
     String? lastName,
     DateTime? dateOfBirth,
     String? sex,
-    double? dailyBudget,
+    double? budgetPerMeal,
     String? cookingSkillLevel,
     String? physicalActivityLevel,
     List<String>? foodAllergies,
@@ -61,7 +59,7 @@ class ProfileUpdateRequest {
       lastName: lastName ?? this.lastName,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       sex: sex ?? this.sex,
-      dailyBudget: dailyBudget ?? this.dailyBudget,
+      budgetPerMeal: budgetPerMeal ?? this.budgetPerMeal,
       cookingSkillLevel: cookingSkillLevel ?? this.cookingSkillLevel,
       physicalActivityLevel: physicalActivityLevel ?? this.physicalActivityLevel,
       foodAllergies: foodAllergies ?? this.foodAllergies,
@@ -70,8 +68,6 @@ class ProfileUpdateRequest {
     );
   }
 
-  /// True if no fields have been set — useful to short-circuit an update
-  /// call and avoid sending an empty PUT request.
   bool get isEmpty => toJson().isEmpty;
 
   @override
