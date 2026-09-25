@@ -50,7 +50,7 @@ class GroceryListItemCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        item.ingredient,
+                        item.displayName,
                         style: theme.textTheme.titleMedium?.copyWith(
                           decoration: isChecked
                               ? TextDecoration.lineThrough
