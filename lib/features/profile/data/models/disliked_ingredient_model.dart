@@ -1,3 +1,5 @@
+import 'package:meal_recommendation_app/core/utils/ingredient_display.dart';
+
 class DislikedIngredientModel {
   final String id;
   final String ingredient;
@@ -13,6 +15,10 @@ class DislikedIngredientModel {
       ingredient: json['ingredient'] as String,
     );
   }
+
+  /// "soy_sauce" -> "Soy Sauce" — always use this for display,
+  /// keep `ingredient` for API calls and comparisons.
+  String get displayName => formatIngredientName(ingredient);
 
   Map<String, dynamic> toJson() {
     return {

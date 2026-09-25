@@ -50,7 +50,7 @@ class GroceryListItemCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        _capitalize(item.ingredient),
+                        item.ingredient,
                         style: theme.textTheme.titleMedium?.copyWith(
                           decoration: isChecked
                               ? TextDecoration.lineThrough
@@ -135,14 +135,6 @@ class GroceryListItemCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _capitalize(String s) {
-    return s
-        .split('_')
-        .map((word) =>
-            word.isEmpty ? word : '${word[0].toUpperCase()}${word.substring(1)}')
-        .join(' ');
   }
 }
 

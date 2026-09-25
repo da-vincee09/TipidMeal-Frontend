@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_recommendation_app/app/colors.dart';
+import 'package:meal_recommendation_app/core/utils/ingredient_display.dart';
 import 'package:meal_recommendation_app/features/pantry/data/models/ingredient_suggestion_model.dart';
 import 'package:meal_recommendation_app/features/pantry/data/models/pantry_item_model.dart';
 import 'package:meal_recommendation_app/features/pantry/data/pantry_dependencies.dart';
@@ -44,24 +45,47 @@ class _AddPantryItemDialogState extends ConsumerState<AddPantryItemDialog> {
   // allUnitsProvider's full list (all units used across every meal).
   List<String>? _availableUnitsOverride;
 
+  // The real canonical (snake_case) ingredient name to submit, if we
+  // have one — set when editing an existing item, or when the user
+  // picks a suggestion. Cleared the moment the user edits the field
+  // text away from that selection, since the field no longer reflects
+  // a known ingredient at that point.
+  String? _selectedIngredientRaw;
+
   bool get isEditing => widget.item != null;
 
   @override
   void initState() {
     super.initState();
+    final initialRaw = widget.item?.ingredient;
     _ingredientController = TextEditingController(
-      text: widget.item?.ingredient ?? '',
+      text: initialRaw != null ? formatIngredientName(initialRaw) : '',
     );
+    _selectedIngredientRaw = initialRaw;
     _quantityController = TextEditingController(
       text: widget.item != null ? widget.item!.displayQuantity : '',
     );
     _selectedUnit = widget.item?.unit;
     _ingredientFocusNode = FocusNode();
+    _ingredientController.addListener(_onIngredientTextChanged);
+  }
+
+  /// Invalidates the tracked canonical ingredient name if the user
+  /// types something that no longer matches the last selection/prefill
+  /// — otherwise a manual edit after selecting a suggestion would still
+  /// submit the *old* ingredient instead of what's actually in the field.
+  void _onIngredientTextChanged() {
+    if (_selectedIngredientRaw == null) return;
+    if (_ingredientController.text !=
+        formatIngredientName(_selectedIngredientRaw!)) {
+      setState(() => _selectedIngredientRaw = null);
+    }
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _ingredientController.removeListener(_onIngredientTextChanged);
     _ingredientController.dispose();
     _quantityController.dispose();
     _ingredientFocusNode.dispose();
@@ -98,6 +122,7 @@ class _AddPantryItemDialogState extends ConsumerState<AddPantryItemDialog> {
       _availableUnitsOverride =
           selection.units.isNotEmpty ? selection.units : null;
       _selectedUnit = selection.hasSingleUnit ? selection.units.first : null;
+      _selectedIngredientRaw = selection.ingredient;
     });
   }
 
@@ -108,9 +133,15 @@ class _AddPantryItemDialogState extends ConsumerState<AddPantryItemDialog> {
       return;
     }
 
+    // Prefer the real canonical name from a selection/prefill; only fall
+    // back to guessing one from typed text if the user never picked a
+    // suggestion (a genuinely new ingredient).
+    final ingredientToSubmit = _selectedIngredientRaw ??
+        toCanonicalIngredientName(_ingredientController.text.trim());
+
     Navigator.of(context).pop(
       PantryItemFormResult(
-        ingredient: _ingredientController.text.trim(),
+        ingredient: ingredientToSubmit,
         quantity: double.parse(_quantityController.text.trim()),
         unit: _selectedUnit!,
       ),
@@ -160,7 +191,7 @@ class _AddPantryItemDialogState extends ConsumerState<AddPantryItemDialog> {
                   RawAutocomplete<IngredientSuggestionModel>(
                     textEditingController: _ingredientController,
                     focusNode: _ingredientFocusNode,
-                    displayStringForOption: (option) => option.ingredient,
+                    displayStringForOption: (option) => option.displayName,
                     optionsBuilder: (textEditingValue) =>
                         _fetchSuggestions(textEditingValue.text),
                     onSelected: _onIngredientSelected,
@@ -202,7 +233,7 @@ class _AddPantryItemDialogState extends ConsumerState<AddPantryItemDialog> {
                                     size: 6,
                                     color: AppColors.burntOrange,
                                   ),
-                                  title: Text(option.ingredient),
+                                  title: Text(option.displayName),
                                   subtitle: Text(option.units.join(', ')),
                                   onTap: () => onSelected(option),
                                 );

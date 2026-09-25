@@ -1,7 +1,7 @@
 class ApiConstants {
   ApiConstants._();
 
-  static const String baseUrl = 'http://127.0.0.0:8000/api/v1';  
+  static const String baseUrl = 'https://tipidmeal-backend-1.onrender.com/api/v1';  
 
   static const String profiles = '/profiles';
   static const String profileMe = '/profiles/me';

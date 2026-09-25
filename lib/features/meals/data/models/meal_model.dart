@@ -1,3 +1,5 @@
+import 'package:meal_recommendation_app/core/utils/ingredient_display.dart';
+
 class MealIngredientModel {
   final String id;
   final String ingredient;
@@ -35,6 +37,10 @@ class MealIngredientModel {
     }
     return quantity.toString();
   }
+
+  /// "cooked_rice" -> "Cooked Rice" — always use this for display,
+  /// keep `ingredient` for API calls and comparisons.
+  String get displayName => formatIngredientName(ingredient);
 
   Map<String, dynamic> toJson() {
     return {

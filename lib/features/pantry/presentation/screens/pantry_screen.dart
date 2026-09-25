@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_recommendation_app/app/colors.dart';
 import 'package:meal_recommendation_app/core/extensions/context_extension.dart';
+import 'package:meal_recommendation_app/core/utils/ingredient_display.dart';
 
 import 'package:meal_recommendation_app/features/pantry/data/models/pantry_item_create_request.dart';
 import 'package:meal_recommendation_app/features/pantry/data/models/pantry_item_model.dart';
@@ -45,7 +46,7 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
     if (!mounted) return;
 
     if (success) {
-      context.showSuccessSnackBar('${result.ingredient} added to pantry', bottomMargin: 88);
+      context.showSuccessSnackBar('${formatIngredientName(result.ingredient)} added to pantry', bottomMargin: 88);
     } else {
       context.showErrorSnackBar('Could not add item. Please try again.', bottomMargin: 88);
     }
@@ -72,7 +73,7 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
     if (!mounted) return;
 
     if (success) {
-      context.showSuccessSnackBar('${result.ingredient} updated', bottomMargin: 88);
+      context.showSuccessSnackBar('${formatIngredientName(result.ingredient)} updated', bottomMargin: 88);
     } else {
       context.showErrorSnackBar('Could not update item. Please try again.', bottomMargin: 88);
     }
@@ -86,7 +87,7 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
           borderRadius: BorderRadius.circular(24),
         ),
         title: const Text('Delete item?'),
-        content: Text('Remove "${item.ingredient}" from your pantry?'),
+        content: Text('Remove "${item.displayName}" from your pantry?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -111,7 +112,7 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
     if (!mounted) return;
 
     if (success) {
-      context.showSuccessSnackBar('${item.ingredient} removed from pantry', bottomMargin: 88);
+      context.showSuccessSnackBar('${item.displayName} removed from pantry', bottomMargin: 88);
     } else {
       context.showErrorSnackBar('Could not delete item. Please try again.', bottomMargin: 88);
     }

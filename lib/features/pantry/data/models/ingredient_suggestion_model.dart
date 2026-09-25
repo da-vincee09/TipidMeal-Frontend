@@ -1,3 +1,5 @@
+import 'package:meal_recommendation_app/core/utils/ingredient_display.dart';
+
 class IngredientSuggestionModel {
   final String ingredient;
   final List<String> units;
@@ -17,4 +19,8 @@ class IngredientSuggestionModel {
   /// True when every meal using this ingredient uses the same unit —
   /// safe to auto-select without asking the user.
   bool get hasSingleUnit => units.length == 1;
+
+  /// "pork_belly" -> "Pork Belly" — always use this for display,
+  /// keep `ingredient` for API calls and comparisons.
+  String get displayName => formatIngredientName(ingredient);
 }

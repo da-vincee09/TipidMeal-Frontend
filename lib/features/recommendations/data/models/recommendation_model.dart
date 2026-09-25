@@ -1,6 +1,6 @@
 import 'package:meal_recommendation_app/features/meals/data/models/meal_model.dart';
 import 'package:meal_recommendation_app/features/nutrition/data/models/nutrition_adequacy_model.dart';
-
+import 'package:meal_recommendation_app/core/utils/ingredient_display.dart';
 
 class IngredientAdaptationModel {
   final String ingredient;
@@ -42,6 +42,14 @@ class IngredientAdaptationModel {
   bool get isSubstitute => action == 'substitute';
   bool get isOmitted => action == 'omit';
   bool get isUnavailable => action == 'unavailable';
+
+  /// "pork_belly" -> "Pork Belly" — always use this for display,
+  /// keep `ingredient` for API calls and comparisons.
+  String get displayName => formatIngredientName(ingredient);
+
+  /// Same idea for the substitute ingredient, when action == 'substitute'.
+  String? get displayReplacement =>
+      replacement == null ? null : formatIngredientName(replacement!);
 
   @override
   String toString() =>

@@ -1,3 +1,5 @@
+import 'package:meal_recommendation_app/core/utils/ingredient_display.dart';
+
 class PantryItemModel {
   final String id;
   final String ingredient;
@@ -68,6 +70,10 @@ class PantryItemModel {
     }
     return quantity.toString();
   }
+
+  /// "pork_belly" -> "Pork Belly" — always use this for display,
+  /// keep `ingredient` for API calls and comparisons.
+  String get displayName => formatIngredientName(ingredient);
 
   @override
   String toString() =>

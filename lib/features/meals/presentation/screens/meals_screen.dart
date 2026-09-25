@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:meal_recommendation_app/features/favorites/presentation/providers/favorites_provider.dart';
 import 'package:meal_recommendation_app/features/meals/presentation/providers/meal_provider.dart';
 import 'package:meal_recommendation_app/features/meals/presentation/widgets/meal_card.dart';
 
@@ -17,6 +18,7 @@ class _MealsScreenState extends ConsumerState<MealsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(mealControllerProvider.notifier).loadMeals();
+      ref.read(favoritesControllerProvider.notifier).loadFavorites();
     });
   }
 

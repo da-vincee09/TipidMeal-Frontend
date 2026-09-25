@@ -1,3 +1,5 @@
+import 'package:meal_recommendation_app/core/utils/ingredient_display.dart';
+
 class GroceryListItemModel {
   final String ingredient;
   final String unit;
@@ -45,6 +47,10 @@ class GroceryListItemModel {
         ? value.toInt().toString()
         : value.toString();
   }
+
+  // "string_beans" -> "String Beans" — always use this for display,
+  /// keep `ingredient` for API calls and comparisons.
+  String get displayName => formatIngredientName(ingredient);
 
   String get displayQuantityToBuy => _trim(quantityToBuy);
   String get displayRequiredQuantity => _trim(requiredQuantity);

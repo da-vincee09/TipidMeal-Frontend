@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -212,7 +214,7 @@ class MealDetailScreen extends ConsumerWidget {
                                   _IngredientTile(
                                     quantity: ingredient.displayQuantity,
                                     unit: ingredient.unit,
-                                    ingredient: ingredient.ingredient,
+                                    ingredient: ingredient.displayName,
                                     isOptional: ingredient.isOptional,
                                   ),
                                   if (index != meal.ingredients.length - 1)
@@ -400,29 +402,43 @@ class _NutritionCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
-            _FoodGroupBar(
-              goPercent: nutrition.goPercent,
-              growPercent: nutrition.growPercent,
-              glowPercent: nutrition.glowPercent,
-            ),
-
-            const SizedBox(height: 10),
-
-            Wrap(
-              spacing: 14,
-              runSpacing: 6,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _FoodGroupLegend(
-                  color: AppColors.burntOrange,
-                  label: 'Go ${nutrition.goPercent.toStringAsFixed(0)}%',
+                _FoodGroupPlate(
+                  goPercent: nutrition.goPercent,
+                  growPercent: nutrition.growPercent,
+                  glowPercent: nutrition.glowPercent,
                 ),
-                _FoodGroupLegend(
-                  color: AppColors.olive,
-                  label: 'Grow ${nutrition.growPercent.toStringAsFixed(0)}%',
-                ),
-                _FoodGroupLegend(
-                  color: Colors.green.shade300,
-                  label: 'Glow ${nutrition.glowPercent.toStringAsFixed(0)}%',
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (nutrition.goPercent > 0)
+                        _FoodGroupLegend(
+                          color: _FoodGroupPlate.goColor,
+                          label:
+                              'Go ${nutrition.goPercent.toStringAsFixed(0)}%',
+                        ),
+                      if (nutrition.goPercent > 0) const SizedBox(height: 6),
+                      if (nutrition.growPercent > 0)
+                        _FoodGroupLegend(
+                          color: _FoodGroupPlate.growColor,
+                          label:
+                              'Grow ${nutrition.growPercent.toStringAsFixed(0)}%',
+                        ),
+                      if (nutrition.growPercent > 0)
+                        const SizedBox(height: 6),
+                      if (nutrition.glowPercent > 0)
+                        _FoodGroupLegend(
+                          color: _FoodGroupPlate.glowColor,
+                          label:
+                              'Glow ${nutrition.glowPercent.toStringAsFixed(0)}%',
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -476,41 +492,182 @@ class _NutritionCard extends StatelessWidget {
   }
 }
 
-class _FoodGroupBar extends StatelessWidget {
+// ============================================================
+// FOOD GROUP PLATE (Pinggang Pinoy style)
+// ============================================================
+
+class _FoodGroupPlate extends StatelessWidget {
   final double goPercent;
   final double growPercent;
   final double glowPercent;
 
-  const _FoodGroupBar({
+  const _FoodGroupPlate({
     required this.goPercent,
     required this.growPercent,
     required this.glowPercent,
   });
 
+  // Pinggang Pinoy poster colors — DOST-FNRI has no published brand
+  // hex spec, so these follow the poster's consistent orange/red/green scheme.
+  static const goColor = Color(0xFFF5A623);
+  static const growColor = Color(0xFFD64545);
+  static const glowColor = Color(0xFF4CAF50);
+
+  static const _size = 150.0;
+
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: SizedBox(
-        height: 14,
-        child: Row(
-          children: [
-            Expanded(
-              flex: (goPercent * 10).round().clamp(1, 1000),
-              child: Container(color: AppColors.burntOrange),
+    final segments = <(double, Color, IconData)>[
+      (goPercent, goColor, Icons.rice_bowl_outlined),
+      (growPercent, growColor, Icons.egg_outlined),
+      (glowPercent, glowColor, Icons.eco_outlined),
+    ];
+
+    // Compute each wedge's mid-angle so icons sit centered in their slice.
+    final icons = <Widget>[];
+    var startAngle = -math.pi / 2;
+    const center = Offset(_size / 2, _size / 2);
+    final iconRadius = _size / 2 * 0.6;
+
+    // ignore: unused_local_variable
+    for (final (percent, color, icon) in segments) {
+      if (percent <= 0) continue;
+      final sweep = (percent / 100) * 2 * math.pi;
+      final midAngle = startAngle + sweep / 2;
+      final pos = center +
+          Offset(math.cos(midAngle), math.sin(midAngle)) * iconRadius;
+
+      // Only show the icon if its slice is wide enough to hold it legibly.
+      if (sweep > 0.35) {
+        icons.add(Positioned(
+          left: pos.dx - 11,
+          top: pos.dy - 11,
+          child: Icon(icon, size: 22, color: Colors.white),
+        ));
+      }
+      startAngle += sweep;
+    }
+
+    return SizedBox(
+      width: _size,
+      height: _size,
+      child: Stack(
+        children: [
+          CustomPaint(
+            size: const Size(_size, _size),
+            painter: _PlatePainter(
+              goPercent: goPercent,
+              growPercent: growPercent,
+              glowPercent: glowPercent,
+              goColor: goColor,
+              growColor: growColor,
+              glowColor: glowColor,
             ),
-            Expanded(
-              flex: (growPercent * 10).round().clamp(1, 1000),
-              child: Container(color: AppColors.olive),
-            ),
-            Expanded(
-              flex: (glowPercent * 10).round().clamp(1, 1000),
-              child: Container(color: Colors.green.shade300),
-            ),
-          ],
-        ),
+          ),
+          ...icons,
+        ],
       ),
     );
+  }
+}
+
+class _PlatePainter extends CustomPainter {
+  final double goPercent;
+  final double growPercent;
+  final double glowPercent;
+  final Color goColor;
+  final Color growColor;
+  final Color glowColor;
+
+  _PlatePainter({
+    required this.goPercent,
+    required this.growPercent,
+    required this.glowPercent,
+    required this.goColor,
+    required this.growColor,
+    required this.glowColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final plateRadius = size.width / 2 - 4;
+
+    // Plate shadow for a lifted, dish-like feel.
+    canvas.drawCircle(
+      center.translate(0, 3),
+      plateRadius,
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.10)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+    );
+
+    // White china base.
+    canvas.drawCircle(center, plateRadius, Paint()..color = Colors.white);
+
+    // Wedge sections, inset slightly to leave a visible plate rim.
+    final wedgeRadius = plateRadius - 10;
+    final rect = Rect.fromCircle(center: center, radius: wedgeRadius);
+
+    final segments = <(double, Color)>[
+      (goPercent, goColor),
+      (growPercent, growColor),
+      (glowPercent, glowColor),
+    ];
+
+    var startAngle = -math.pi / 2;
+    for (final (percent, color) in segments) {
+      if (percent <= 0) continue;
+      final sweep = (percent / 100) * 2 * math.pi;
+      canvas.drawArc(rect, startAngle, sweep, true, Paint()..color = color);
+      startAngle += sweep;
+    }
+
+    // Thin white dividing lines between wedges.
+    startAngle = -math.pi / 2;
+    final dividerPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5;
+    for (final (percent, _) in segments) {
+      if (percent <= 0) continue;
+      final point = center +
+          Offset(math.cos(startAngle), math.sin(startAngle)) * wedgeRadius;
+      canvas.drawLine(center, point, dividerPaint);
+      startAngle += (percent / 100) * 2 * math.pi;
+    }
+
+    // Double rim ring, like real plateware.
+    canvas.drawCircle(
+      center,
+      plateRadius,
+      Paint()
+        ..color = Colors.grey.shade300
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3,
+    );
+    canvas.drawCircle(
+      center,
+      wedgeRadius + 4,
+      Paint()
+        ..color = Colors.grey.shade200
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+
+    // Small white well in the very center.
+    canvas.drawCircle(
+      center,
+      wedgeRadius * 0.12,
+      Paint()..color = Colors.white,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PlatePainter oldDelegate) {
+    return oldDelegate.goPercent != goPercent ||
+        oldDelegate.growPercent != growPercent ||
+        oldDelegate.glowPercent != glowPercent;
   }
 }
 
